@@ -694,7 +694,7 @@ SELECT mechanic_name "Mechanic" , Part_Category as "Type of Part Ordered" , sum(
 		ON mechanic.mechanic_id = mechanic_uses.mechanic_id
 	INNER JOIN part
 		ON mechanic_uses.part_id = part.part_id
-    GROUP BY mechanic_name
+    GROUP BY mechanic_name, part_category
     ORDER BY sum(Part_Quantity)desc, Part_Category asc;
 
     
