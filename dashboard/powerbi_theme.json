@@ -1,0 +1,22 @@
+{
+  "name": "Service Ops",
+  "dataColors": ["#2A78D6", "#EB6834", "#1BAF7A", "#EDA100", "#E87BA4", "#008300", "#4A3AA7", "#E34948"],
+  "background": "#FCFCFB",
+  "secondaryBackground": "#EEF0EF",
+  "foreground": "#121416",
+  "foregroundNeutralSecondary": "#4A5056",
+  "foregroundNeutralTertiary": "#767D82",
+  "tableAccent": "#2A78D6",
+  "good": "#0CA30C",
+  "neutral": "#FAB219",
+  "bad": "#D03B3B",
+  "maximum": "#104281",
+  "center": "#5598E7",
+  "minimum": "#E4EEFB",
+  "textClasses": {
+    "callout": { "fontSize": 24, "fontFace": "Segoe UI Semibold", "color": "#121416" },
+    "title":   { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#121416" },
+    "header":  { "fontSize": 11, "fontFace": "Segoe UI Semibold", "color": "#4A5056" },
+    "label":   { "fontSize": 10, "fontFace": "Segoe UI", "color": "#4A5056" }
+  }
+}

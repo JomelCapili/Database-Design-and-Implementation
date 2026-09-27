@@ -1,0 +1,143 @@
+// Service Management DB v2 - entity relationship diagram (crow's foot notation)
+// Render: dot -Tsvg docs/erd.dot -o docs/img/erd.svg && dot -Tpng -Gdpi=160 docs/erd.dot -o docs/img/erd.png
+digraph ERD {
+  graph [rankdir=LR, splines=spline, nodesep=0.45, ranksep=1.1, pad=0.3, bgcolor="white",
+         fontname="Helvetica", label=<<b>Service Management DB (v2)</b>  ·  14 tables  ·  3NF  ·  MySQL 8>, labelloc=t, fontsize=18];
+  node  [shape=plaintext, fontname="Helvetica", fontsize=11];
+  edge  [dir=both, color="#6b7176", penwidth=1.2, arrowsize=0.9];
+
+  // ---------- customers (blue) ----------
+  customer [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#dbe8f8" colspan="2"><b>customer</b></td></tr>
+    <tr><td align="left"><b>PK</b> customer_id</td><td port="pk" align="left">INT</td></tr>
+    <tr><td align="left">first_name, last_name</td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">company_name</td><td align="left">VARCHAR NULL</td></tr>
+    <tr><td align="left">phone, email <i>(UQ)</i></td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">zip_code</td><td align="left">CHAR(5)</td></tr>
+    <tr><td align="left">acquisition_channel</td><td align="left">CHECK</td></tr>
+    <tr><td align="left">customer_since</td><td align="left">DATE</td></tr></table>>];
+  vehicle [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#dbe8f8" colspan="2"><b>vehicle</b></td></tr>
+    <tr><td align="left"><b>PK</b> vehicle_id</td><td port="pk" align="left">INT</td></tr>
+    <tr><td port="fk" align="left"><b>FK</b> customer_id</td><td align="left">INT</td></tr>
+    <tr><td align="left">vin <i>(UQ, CHECK)</i></td><td align="left">CHAR(17)</td></tr>
+    <tr><td align="left">make, model</td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">model_year</td><td align="left">SMALLINT</td></tr></table>>];
+  appointment [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#dbe8f8" colspan="2"><b>appointment</b></td></tr>
+    <tr><td align="left"><b>PK</b> appointment_id</td><td port="pk" align="left">INT</td></tr>
+    <tr><td port="fk" align="left"><b>FK</b> vehicle_id</td><td align="left">INT</td></tr>
+    <tr><td align="left">booked_at, scheduled_start</td><td align="left">DATETIME</td></tr>
+    <tr><td align="left">status</td><td align="left">CHECK</td></tr></table>>];
+  customer_feedback [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#dbe8f8" colspan="2"><b>customer_feedback</b></td></tr>
+    <tr><td align="left"><b>PK</b> feedback_id</td><td align="left">INT</td></tr>
+    <tr><td port="fk" align="left"><b>FK</b> work_order_id <i>(UQ)</i></td><td align="left">INT</td></tr>
+    <tr><td align="left">submitted_at</td><td align="left">DATETIME</td></tr>
+    <tr><td align="left">rating (1-5), comment</td><td align="left">TINYINT</td></tr></table>>];
+
+  // ---------- operations (orange) ----------
+  work_order [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#fbe1d6" colspan="2"><b>work_order</b></td></tr>
+    <tr><td align="left"><b>PK</b> work_order_id</td><td port="pk" align="left">INT</td></tr>
+    <tr><td port="veh" align="left"><b>FK</b> vehicle_id</td><td align="left">INT</td></tr>
+    <tr><td port="appt" align="left"><b>FK</b> appointment_id <i>(UQ, NULL)</i></td><td align="left">INT</td></tr>
+    <tr><td port="mech" align="left"><b>FK</b> mechanic_id</td><td align="left">SMALLINT</td></tr>
+    <tr><td align="left"><b>FK</b> parent_work_order_id <i>(NULL)</i></td><td port="parent" align="left">INT</td></tr>
+    <tr><td align="left">opened_at, promised_at, completed_at</td><td align="left">DATETIME</td></tr>
+    <tr><td align="left">status</td><td align="left">CHECK</td></tr>
+    <tr><td align="left">odometer_miles</td><td align="left">INT</td></tr></table>>];
+  mechanic [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#fbe1d6" colspan="2"><b>mechanic</b></td></tr>
+    <tr><td align="left"><b>PK</b> mechanic_id</td><td port="pk" align="left">SMALLINT</td></tr>
+    <tr><td align="left">first_name, last_name, phone</td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">skill_level</td><td align="left">CHECK</td></tr>
+    <tr><td align="left">hourly_wage</td><td align="left">DECIMAL</td></tr>
+    <tr><td align="left">hire_date, termination_date</td><td align="left">DATE</td></tr></table>>];
+  work_order_service [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#fbe1d6" colspan="2"><b>work_order_service</b></td></tr>
+    <tr><td port="wo" align="left"><b>PK FK</b> work_order_id</td><td align="left">INT</td></tr>
+    <tr><td port="st" align="left"><b>PK FK</b> service_type_id</td><td align="left">SMALLINT</td></tr>
+    <tr><td align="left">hours_billed, hours_actual</td><td align="left">DECIMAL</td></tr>
+    <tr><td align="left">labor_rate</td><td align="left">DECIMAL</td></tr></table>>];
+  service_type [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#fbe1d6" colspan="2"><b>service_type</b></td></tr>
+    <tr><td align="left"><b>PK</b> service_type_id</td><td port="pk" align="left">SMALLINT</td></tr>
+    <tr><td align="left">service_name <i>(UQ)</i></td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">service_category</td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">book_hours</td><td align="left">DECIMAL</td></tr></table>>];
+
+  // ---------- inventory (green) ----------
+  work_order_part [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#d2f0e5" colspan="2"><b>work_order_part</b></td></tr>
+    <tr><td port="wo" align="left"><b>PK FK</b> work_order_id</td><td align="left">INT</td></tr>
+    <tr><td port="part" align="left"><b>PK FK</b> part_id</td><td align="left">SMALLINT</td></tr>
+    <tr><td align="left">quantity</td><td align="left">SMALLINT</td></tr>
+    <tr><td align="left">unit_cost, unit_price</td><td align="left">DECIMAL</td></tr>
+    <tr><td align="left">was_in_stock</td><td align="left">BOOLEAN</td></tr></table>>];
+  part [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#d2f0e5" colspan="2"><b>part</b></td></tr>
+    <tr><td align="left"><b>PK</b> part_id</td><td port="pk" align="left">SMALLINT</td></tr>
+    <tr><td align="left">sku <i>(UQ)</i>, part_name</td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">part_category</td><td align="left">VARCHAR</td></tr>
+    <tr><td port="sup" align="left"><b>FK</b> supplier_id</td><td align="left">SMALLINT</td></tr>
+    <tr><td align="left">unit_cost, unit_price</td><td align="left">DECIMAL</td></tr>
+    <tr><td align="left">reorder_point, reorder_qty</td><td align="left">SMALLINT</td></tr></table>>];
+  supplier [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#d2f0e5" colspan="2"><b>supplier</b></td></tr>
+    <tr><td align="left"><b>PK</b> supplier_id</td><td port="pk" align="left">SMALLINT</td></tr>
+    <tr><td align="left">supplier_name <i>(UQ)</i>, phone</td><td align="left">VARCHAR</td></tr>
+    <tr><td align="left">quoted_lead_days</td><td align="left">TINYINT</td></tr></table>>];
+  part_order [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#d2f0e5" colspan="2"><b>part_order</b></td></tr>
+    <tr><td align="left"><b>PK</b> part_order_id</td><td align="left">INT</td></tr>
+    <tr><td port="part" align="left"><b>FK</b> part_id</td><td align="left">SMALLINT</td></tr>
+    <tr><td port="wo" align="left"><b>FK</b> work_order_id <i>(NULL)</i></td><td align="left">INT</td></tr>
+    <tr><td align="left">order_type</td><td align="left">CHECK</td></tr>
+    <tr><td align="left">ordered / expected / received_date</td><td align="left">DATE</td></tr>
+    <tr><td align="left">quantity, unit_cost</td><td align="left">SMALLINT, DEC</td></tr></table>>];
+
+  // ---------- finance (violet) ----------
+  invoice [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#e3e0f5" colspan="2"><b>invoice</b></td></tr>
+    <tr><td align="left"><b>PK</b> invoice_id</td><td port="pk" align="left">INT</td></tr>
+    <tr><td port="fk" align="left"><b>FK</b> work_order_id <i>(UQ)</i></td><td align="left">INT</td></tr>
+    <tr><td align="left">invoice_date</td><td align="left">DATE</td></tr>
+    <tr><td align="left">discount_amount, discount_reason</td><td align="left">DECIMAL</td></tr>
+    <tr><td align="left">tax_rate</td><td align="left">DECIMAL</td></tr></table>>];
+  payment [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="#9aa3a9">
+    <tr><td bgcolor="#e3e0f5" colspan="2"><b>payment</b></td></tr>
+    <tr><td align="left"><b>PK</b> payment_id</td><td align="left">INT</td></tr>
+    <tr><td port="fk" align="left"><b>FK</b> invoice_id</td><td align="left">INT</td></tr>
+    <tr><td align="left">paid_at</td><td align="left">DATETIME</td></tr>
+    <tr><td align="left">payment_method</td><td align="left">CHECK</td></tr>
+    <tr><td align="left">amount</td><td align="left">DECIMAL</td></tr></table>>];
+
+  // ---------- relationships: parent (one) -> child (many), drawn left to right ----------
+  customer:pk:e       -> vehicle:fk:w            [arrowtail=teetee, arrowhead=crowodot];
+  vehicle:pk:e        -> appointment:fk:w        [arrowtail=teetee, arrowhead=crowodot];
+  vehicle:pk:e        -> work_order:veh:w        [arrowtail=teetee, arrowhead=crowodot];
+  appointment:pk:e    -> work_order:appt:w       [arrowtail=teeodot, arrowhead=teeodot];
+  mechanic:pk:e       -> work_order:mech:w       [arrowtail=teetee, arrowhead=crowodot];
+  work_order:pk:e     -> work_order_service:wo:w [arrowtail=teetee, arrowhead=crowtee];
+  service_type:pk:e   -> work_order_service:st:w [arrowtail=teetee, arrowhead=crowodot];
+  work_order:pk:e     -> work_order_part:wo:w    [arrowtail=teetee, arrowhead=crowodot];
+  part:pk:e           -> work_order_part:part:w  [arrowtail=teetee, arrowhead=crowodot];
+  supplier:pk:e       -> part:sup:w              [arrowtail=teetee, arrowhead=crowodot];
+  part:pk:e           -> part_order:part:w       [arrowtail=teetee, arrowhead=crowodot];
+  work_order:pk:e     -> part_order:wo:w         [arrowtail=teeodot, arrowhead=crowodot];
+  work_order:pk:e     -> invoice:fk:w            [arrowtail=teetee, arrowhead=teeodot];
+  invoice:pk:e        -> payment:fk:w            [arrowtail=teetee, arrowhead=crowodot];
+  work_order:pk:e     -> customer_feedback:fk:w  [arrowtail=teetee, arrowhead=teeodot];
+  work_order:pk:e     -> work_order:parent:e     [arrowtail=teeodot, arrowhead=crowodot, constraint=false];
+
+  { rank=same; customer; mechanic; supplier; }
+  { rank=same; vehicle; service_type; part; }
+  legend [label=<<table border="0" cellborder="0" cellspacing="2" cellpadding="3">
+    <tr><td align="left" colspan="2"><b>Subject areas</b></td></tr>
+    <tr><td bgcolor="#dbe8f8" width="18"> </td><td align="left">Customers</td></tr>
+    <tr><td bgcolor="#fbe1d6"> </td><td align="left">Operations</td></tr>
+    <tr><td bgcolor="#d2f0e5"> </td><td align="left">Inventory</td></tr>
+    <tr><td bgcolor="#e3e0f5"> </td><td align="left">Finance</td></tr>
+    <tr><td align="left" colspan="2"><font point-size="10">Crow's foot = many · bar = one · circle = optional</font></td></tr></table>>];
+}

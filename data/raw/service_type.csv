@@ -1,0 +1,39 @@
+service_type_id,service_name,service_category,book_hours
+1,Synthetic Oil Change,Maintenance,0.40
+2,Tire Rotation & Balance,Maintenance,0.60
+3,Multi-Point Inspection,Diagnostics,0.50
+4,Air & Cabin Filter Replacement,Maintenance,0.30
+5,Coolant Flush,Cooling,1.00
+6,Transmission Fluid Service,Transmission,1.20
+7,Front Brake Pads & Rotors,Brakes,1.80
+8,Rear Brake Pads,Brakes,1.20
+9,Brake Fluid Flush,Brakes,0.80
+10,Check Engine Light Diagnosis,Diagnostics,1.00
+11,Electrical System Diagnosis,Diagnostics,1.50
+12,Battery Replacement,Electrical,0.40
+13,Alternator Replacement,Electrical,2.00
+14,Starter Replacement,Electrical,1.80
+15,A/C Recharge & Leak Test,Climate Control,1.00
+16,A/C Compressor Replacement,Climate Control,3.50
+17,A/C Condenser Replacement,Climate Control,2.50
+18,Water Pump Replacement,Cooling,3.00
+19,Radiator Replacement,Cooling,2.50
+20,Thermostat Replacement,Cooling,1.20
+21,Spark Plug Replacement,Engine,1.20
+22,Ignition Coil Replacement,Engine,0.80
+23,Timing Belt Replacement,Engine,4.50
+24,Valve Cover Gasket Replacement,Engine,2.20
+25,Serpentine Belt Replacement,Engine,0.60
+26,Oxygen Sensor Replacement,Exhaust,0.80
+27,Wheel Alignment,Suspension & Steering,1.00
+28,Front Strut Replacement,Suspension & Steering,3.00
+29,Control Arm Replacement,Suspension & Steering,2.00
+30,Catalytic Converter Replacement,Exhaust,2.00
+31,Muffler Replacement,Exhaust,1.20
+32,Fuel Injection Service,Fuel System,1.00
+33,Fuel Pump Replacement,Fuel System,3.00
+34,Clutch Replacement,Transmission,6.00
+35,Transmission Rebuild,Transmission,10.00
+36,Engine Mount Replacement,Engine,2.00
+37,Sway Bar Link Replacement,Suspension & Steering,0.80
+38,Fuel Injector Replacement,Fuel System,2.50

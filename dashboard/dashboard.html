@@ -1,0 +1,976 @@
+<title>Service Ops Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --page:#eef0ef; --card:#fcfcfb; --card-2:#f3f4f2; --ink:#121416; --ink-2:#4a5056; --muted:#767d82;
+  --grid:#e3e5e1; --axis:#c3c6c1; --hair:rgba(18,20,22,.10);
+  --accent:#2a78d6; --accent-ink:#1c5cab; --accent-wash:rgba(42,120,214,.10);
+  --s2:#eb6834; --s3:#1baf7a; --deemph:#b8bdbf;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-ink:#006300; --warn-ink:#7a5200; --serious-ink:#9c3d17; --crit-ink:#b3261e;
+  --chip-good:rgba(12,163,12,.12); --chip-warn:rgba(250,178,25,.22); --chip-serious:rgba(236,131,90,.20);
+  --chip-crit:rgba(208,59,59,.13); --chip-neutral:rgba(18,20,22,.06);
+  --seq-1:#e4eefb; --seq-2:#b7d3f6; --seq-3:#86b6ef; --seq-4:#5598e7; --seq-5:#2a78d6; --seq-6:#1c5cab; --seq-7:#104281;
+  --seq-ink-lo:#121416; --seq-ink-hi:#ffffff;
+  --tip-bg:#16191b; --tip-ink:#f4f5f5; --tip-ink-2:#aeb4b8;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --display:"Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page:#0e0f10; --card:#1a1a19; --card-2:#232322; --ink:#f3f4f4; --ink-2:#c3c2b7; --muted:#908e87;
+    --grid:#2c2c2a; --axis:#3d3d3a; --hair:rgba(255,255,255,.10);
+    --accent:#3987e5; --accent-ink:#86b6ef; --accent-wash:rgba(57,135,229,.16);
+    --s2:#d95926; --s3:#199e70; --deemph:#55595c;
+    --good-ink:#3cc43c; --warn-ink:#fab219; --serious-ink:#ec835a; --crit-ink:#f07a7a;
+    --chip-good:rgba(12,163,12,.20); --chip-warn:rgba(250,178,25,.18); --chip-serious:rgba(236,131,90,.20);
+    --chip-crit:rgba(208,59,59,.24); --chip-neutral:rgba(255,255,255,.08);
+    --seq-1:#1f2833; --seq-2:#1b3656; --seq-3:#184f95; --seq-4:#256abf; --seq-5:#3987e5; --seq-6:#6da7ec; --seq-7:#b7d3f6;
+    --seq-ink-lo:#f3f4f4; --seq-ink-hi:#0e0f10;
+    --tip-bg:#f3f4f4; --tip-ink:#121416; --tip-ink-2:#4a5056;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:#0e0f10; --card:#1a1a19; --card-2:#232322; --ink:#f3f4f4; --ink-2:#c3c2b7; --muted:#908e87;
+  --grid:#2c2c2a; --axis:#3d3d3a; --hair:rgba(255,255,255,.10);
+  --accent:#3987e5; --accent-ink:#86b6ef; --accent-wash:rgba(57,135,229,.16);
+  --s2:#d95926; --s3:#199e70; --deemph:#55595c;
+  --good-ink:#3cc43c; --warn-ink:#fab219; --serious-ink:#ec835a; --crit-ink:#f07a7a;
+  --chip-good:rgba(12,163,12,.20); --chip-warn:rgba(250,178,25,.18); --chip-serious:rgba(236,131,90,.20);
+  --chip-crit:rgba(208,59,59,.24); --chip-neutral:rgba(255,255,255,.08);
+  --seq-1:#1f2833; --seq-2:#1b3656; --seq-3:#184f95; --seq-4:#256abf; --seq-5:#3987e5; --seq-6:#6da7ec; --seq-7:#b7d3f6;
+  --seq-ink-lo:#f3f4f4; --seq-ink-hi:#0e0f10;
+  --tip-bg:#f3f4f4; --tip-ink:#121416; --tip-ink-2:#4a5056;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--ink); font: 14px/1.45 var(--sans); margin: 0; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 20px 20px 48px; display: grid; gap: 16px; }
+@media (max-width: 600px) { .wrap { padding: 14px 16px 40px; } }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.brand h1 { font: 600 34px/1 var(--display); letter-spacing: .01em; margin: 0; text-transform: uppercase; }
+.brand p { margin: 6px 0 0; color: var(--ink-2); max-width: 62ch; }
+.stamp { display: grid; gap: 2px; justify-items: end; text-align: right; }
+.stamp .lbl { font: 600 12px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.stamp .val { font: 500 14px/1.3 var(--mono); color: var(--ink); }
+@media (max-width: 600px) { .stamp { justify-items: start; text-align: left; } }
+.badge { display: inline-block; font: 600 11px/1 var(--display); letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 7px 3px; border-radius: 3px; background: var(--chip-warn); color: var(--warn-ink); vertical-align: 2px; margin-left: 8px; }
+
+/* filters + tabs */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.field { display: grid; gap: 4px; }
+.field label { font: 600 12px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+select, .btn { font: 500 14px/1.2 var(--sans); color: var(--ink); background: var(--card); border: 1px solid var(--hair);
+  border-radius: 6px; padding: 8px 30px 8px 10px; min-height: 38px; }
+select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 16px, calc(100% - 10px) 16px; background-size: 5px 5px; background-repeat: no-repeat; max-width: 100%; }
+.btn { padding: 8px 12px; cursor: pointer; }
+.btn:hover { background: var(--card-2); }
+:focus-visible { outline: 2px solid var(--focus, var(--accent)); outline-offset: 2px; }
+.cmp { color: var(--muted); font-size: 13px; padding-bottom: 10px; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--hair); overflow-x: auto; scrollbar-width: none; }
+.tab { font: 600 16px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+  background: none; border: 0; border-bottom: 3px solid transparent; padding: 12px 14px 10px; cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* layout */
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+.s12 { grid-column: span 12; } .s8 { grid-column: span 8; } .s6 { grid-column: span 6; } .s4 { grid-column: span 4; }
+@media (max-width: 980px) { .s8, .s6, .s4 { grid-column: span 12; } }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; grid-column: span 12; }
+
+.card { background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 16px 16px 14px; min-width: 0; display: grid; gap: 10px; align-content: start; }
+.card-h { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.card-h h2 { font: 600 15px/1.3 var(--sans); margin: 0; text-wrap: balance; }
+.card-h .sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.tv { font: 500 12px/1 var(--sans); color: var(--ink-2); background: none; border: 1px solid var(--hair); border-radius: 5px;
+  padding: 5px 8px; cursor: pointer; white-space: nowrap; }
+.tv:hover { background: var(--card-2); }
+.chart { position: relative; min-height: 40px; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.note { color: var(--muted); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key-line { width: 14px; height: 2px; border-radius: 1px; display: inline-block; }
+.key-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.key-ring { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 2px solid var(--deemph); }
+.key-box { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* KPI tile */
+.kpi { background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.kpi .l { font-size: 12.5px; color: var(--ink-2); }
+.kpi .v { font: 600 26px/1.15 var(--sans); letter-spacing: -.01em; }
+.kpi .d { font-size: 12px; color: var(--muted); display: flex; gap: 4px; align-items: baseline; flex-wrap: wrap; }
+.kpi .d b { font-weight: 600; }
+.up-good { color: var(--good-ink); } .down-bad { color: var(--crit-ink); } .flat { color: var(--ink-2); }
+.kpi svg { width: 100%; height: 26px; display: block; }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th { font: 600 12px/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: left;
+  padding: 8px 10px; border-bottom: 1px solid var(--axis); white-space: nowrap; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.mono { font-family: var(--mono); font-size: 12.5px; }
+tr:last-child td { border-bottom: 0; }
+.sub-t { color: var(--muted); font-size: 12px; }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; font: 500 12px/1 var(--sans); padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.chip svg { width: 12px; height: 12px; flex: none; }
+.c-good { background: var(--chip-good); color: var(--good-ink); }
+.c-warn { background: var(--chip-warn); color: var(--warn-ink); }
+.c-serious { background: var(--chip-serious); color: var(--serious-ink); }
+.c-crit { background: var(--chip-crit); color: var(--crit-ink); }
+.c-neutral { background: var(--chip-neutral); color: var(--ink-2); }
+
+.meter { display: flex; align-items: center; gap: 8px; min-width: 150px; }
+.meter .track { position: relative; flex: 1; height: 8px; border-radius: 4px; background: var(--accent-wash); }
+.meter .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
+.meter .tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink-2); border-radius: 1px; }
+.meter span { font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
+
+/* findings */
+.finds { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0; }
+.find { display: grid; gap: 4px; align-content: start; padding: 4px 18px 2px; border-left: 1px solid var(--grid); }
+.find:first-child { border-left: 0; padding-left: 0; }
+@media (max-width: 980px) { .find { border-left: 0; padding: 12px 0; border-top: 1px solid var(--grid); } .find:first-child { border-top: 0; } }
+.find .big { font: 600 34px/1 var(--display); color: var(--ink); margin-bottom: 2px; }
+.find .t { font-weight: 600; }
+.find .b { color: var(--ink-2); font-size: 13px; }
+.find button { justify-self: start; font: 500 12.5px/1 var(--sans); color: var(--accent-ink); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+.find button:hover { text-decoration: underline; }
+
+/* tooltip */
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--tip-bg); color: var(--tip-ink); border-radius: 8px;
+  padding: 8px 10px; font-size: 12.5px; box-shadow: 0 6px 20px rgba(0,0,0,.18); max-width: 260px; }
+#tip .tt { color: var(--tip-ink-2); margin-bottom: 4px; }
+#tip .row { display: flex; align-items: center; gap: 8px; }
+#tip .row b { font-weight: 600; font-variant-numeric: tabular-nums; }
+#tip .row i { color: var(--tip-ink-2); font-style: normal; }
+
+footer { color: var(--muted); font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 6px 18px; border-top: 1px solid var(--hair); padding-top: 14px; }
+footer a { color: var(--accent-ink); }
+
+.axis-t { fill: var(--muted); font: 11px var(--sans); font-variant-numeric: tabular-nums; }
+.lbl-t { fill: var(--ink-2); font: 12px var(--sans); }
+.val-t { fill: var(--ink); font: 600 12px var(--sans); font-variant-numeric: tabular-nums; }
+.grp-t { fill: var(--muted); font: 600 11px var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.hit { fill: transparent; cursor: default; }
+.mark { transition: opacity .12s; }
+@media (prefers-reduced-motion: reduce) { .mark { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Service Ops Board <span class="badge">Synthetic data</span></h1>
+      <p>Operations dashboard for an independent auto repair shop in Las Vegas, NV. Built on a 14-table MySQL database (8,000 repair orders, 2024–2025).</p>
+    </div>
+    <div class="stamp"><span class="lbl">Snapshot</span><span class="val" id="stamp"></span></div>
+  </header>
+
+  <div class="controls" role="group" aria-label="Filters">
+    <div class="field"><label for="f-period">Date range</label>
+      <select id="f-period">
+        <option value="fy25">2025 (vs 2024)</option>
+        <option value="q425">Oct – Dec 2025 (vs 2024)</option>
+        <option value="sum25">Summer 2025, Jun – Aug (vs 2024)</option>
+        <option value="l90">Last 90 days (vs prior 90)</option>
+        <option value="fy24">2024</option>
+        <option value="all">All 24 months</option>
+      </select></div>
+    <div class="field"><label for="f-tech">Technician</label><select id="f-tech"></select></div>
+    <div class="field"><label for="f-cat">Service category</label><select id="f-cat"></select></div>
+    <button class="btn" id="f-reset" type="button">Reset</button>
+    <div class="cmp" id="cmp"></div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Dashboard pages">
+    <button class="tab" role="tab" id="t-overview" data-tab="overview">Overview</button>
+    <button class="tab" role="tab" id="t-floor" data-tab="floor">Shop floor</button>
+    <button class="tab" role="tab" id="t-techs" data-tab="techs">Technicians</button>
+    <button class="tab" role="tab" id="t-parts" data-tab="parts">Parts &amp; inventory</button>
+    <button class="tab" role="tab" id="t-customers" data-tab="customers">Customers</button>
+  </nav>
+
+  <main id="view" class="grid" role="tabpanel"></main>
+
+  <footer>
+    <span>Data: synthetic, generated by a seeded Python simulation; every person, company and VIN is fictional.</span>
+    <span>Metric definitions live in <code>sql/03_views.sql</code>.</span>
+    <span><a href="https://github.com/JomelCapili/Database-Design-and-Implementation">Source on GitHub</a></span>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+
+<script id="dash-data" type="application/json">__DASHBOARD_DATA__</script>
+<script>
+(() => {
+"use strict";
+const D = JSON.parse(document.getElementById("dash-data").textContent);
+const M = D.meta, W = D.wo, AP = D.ap, PL = D.pl;
+const NW = W.d.length;
+const DAY = 864e5, EPOCH = Date.UTC(2024, 0, 1);
+const dOf = (y, m, d) => Math.round((Date.UTC(y, m, d) - EPOCH) / DAY);
+const toDate = d => new Date(EPOCH + d * DAY);
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthOf = d => { const t = toDate(d); return t.getUTCFullYear() * 12 + t.getUTCMonth(); };
+const monthLabel = k => MON[k % 12] + " " + String(Math.floor(k / 12)).slice(2);
+
+const PERIODS = {
+  fy25:  { label: "Jan – Dec 2025", from: dOf(2025,0,1), to: dOf(2025,11,31), cmp: { from: dOf(2024,0,1), to: dOf(2024,11,31), label: "2024" } },
+  q425:  { label: "Oct – Dec 2025", from: dOf(2025,9,1), to: dOf(2025,11,31), cmp: { from: dOf(2024,9,1), to: dOf(2024,11,31), label: "Oct – Dec 2024" } },
+  sum25: { label: "Jun – Aug 2025", from: dOf(2025,5,1), to: dOf(2025,7,31), cmp: { from: dOf(2024,5,1), to: dOf(2024,7,31), label: "Jun – Aug 2024" } },
+  l90:   { label: "Oct 3 – Dec 31 2025", from: dOf(2025,9,3), to: dOf(2025,11,31), cmp: { from: dOf(2025,6,5), to: dOf(2025,9,2), label: "the prior 90 days" } },
+  fy24:  { label: "Jan – Dec 2024", from: dOf(2024,0,1), to: dOf(2024,11,31), cmp: null },
+  all:   { label: "Jan 2024 – Dec 2025", from: dOf(2024,0,1), to: dOf(2025,11,31), cmp: null },
+};
+const state = { period: "fy25", tech: -1, cat: -1, tab: "overview", tables: {} };
+
+/* ---------------- formatting ---------------- */
+const money = v => v == null ? "–" : Math.abs(v) >= 1e6 ? "$" + (v / 1e6).toFixed(2) + "M" : Math.abs(v) >= 1e4 ? "$" + (v / 1e3).toFixed(1) + "K" : "$" + Math.round(v).toLocaleString("en-US");
+const money0 = v => v == null ? "–" : "$" + Math.round(v).toLocaleString("en-US");
+const pct = (v, d = 1) => v == null || !isFinite(v) ? "–" : v.toFixed(d) + "%";
+const int = v => v == null ? "–" : Math.round(v).toLocaleString("en-US");
+const num1 = v => v == null || !isFinite(v) ? "–" : v.toFixed(1);
+const num2 = v => v == null || !isFinite(v) ? "–" : v.toFixed(2);
+const dateTime = s => { const [d, t] = s.split("T"); const [y, m, dd] = d.split("-").map(Number); let [hh, mm] = t.split(":").map(Number);
+  const ap = hh >= 12 ? "PM" : "AM"; hh = hh % 12 || 12; return `${MON[m - 1]} ${dd}, ${hh}:${String(mm).padStart(2, "0")} ${ap}`; };
+
+/* ---------------- DOM helpers ---------------- */
+const SVGNS = "http://www.w3.org/2000/svg";
+function h(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return e;
+}
+function s(tag, attrs = {}, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
+    if (k === "text") e.textContent = v; else if (k === "style") e.setAttribute("style", v); else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const ICON = {
+  check: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.2 2.2 4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  alert: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2.2v4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="6" cy="9.3" r="1" fill="currentColor"/></svg>',
+  clock: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 3.6V6l1.7 1.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  wrench: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.9 1.6a2.6 2.6 0 0 0-2.4 3.5L1.7 8.9a1 1 0 0 0 1.4 1.4l3.8-3.8a2.6 2.6 0 0 0 3.5-2.4L8.9 5.6 7.4 4.6 6.4 3.1z" fill="currentColor"/></svg>',
+};
+function chip(kind, label, icon) {
+  const c = h("span", { class: "chip c-" + kind });
+  if (icon) c.insertAdjacentHTML("afterbegin", ICON[icon]);
+  c.append(document.createTextNode(label));
+  return c;
+}
+
+/* ---------------- tooltip ---------------- */
+const tip = document.getElementById("tip");
+function showTip(ev, title, rows) {
+  tip.replaceChildren();
+  if (title) tip.append(h("div", { class: "tt", text: title }));
+  for (const r of rows) {
+    const row = h("div", { class: "row" });
+    if (r.color) row.append(h("span", { class: "key-line", style: `background:${r.color}` }));
+    row.append(h("b", { text: r.value }));
+    if (r.label) row.append(h("i", { text: r.label }));
+    tip.append(row);
+  }
+  tip.hidden = false;
+  const pad = 14, tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  if (x + tw > innerWidth - 8) x = ev.clientX - tw - pad;
+  if (y + th > innerHeight - 8) y = ev.clientY - th - pad;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+function focusTip(target, title, rows) {
+  const r = target.getBoundingClientRect();
+  showTip({ clientX: r.left + r.width / 2, clientY: r.top }, title, rows);
+}
+function hover(node, title, rows) {
+  node.setAttribute("tabindex", "0");
+  node.addEventListener("pointermove", ev => showTip(ev, title, rows));
+  node.addEventListener("pointerleave", hideTip);
+  node.addEventListener("focus", () => focusTip(node, title, rows));
+  node.addEventListener("blur", hideTip);
+}
+
+/* ---------------- scales ---------------- */
+function niceStep(v, ticks = 4) {                 // 1-2-5 steps only, so rounded labels never lie
+  if (v <= 0) return 1;
+  const raw = v / ticks, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  return [1, 2, 5, 10].map(m => m * mag).find(st => st >= raw - 1e-9);
+}
+function niceMax(v, ticks = 4) { const st = niceStep(v, ticks); return Math.max(st, Math.ceil(v / st - 1e-9) * st); }
+function tickVals(max, n = 4) {
+  const st = niceStep(max, n), out = [];
+  for (let t = 0; t <= max + st * 1e-6; t += st) out.push(+t.toFixed(10));
+  return out;
+}
+function barPath(x, y, w, hgt, r = 4) {           // rounded data-end on top, square at the baseline
+  if (hgt <= 0) return "";
+  r = Math.min(r, w / 2, hgt);
+  return `M${x},${y + hgt}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + hgt}Z`;
+}
+function hbarPath(x, y, w, hgt, r = 4) {          // rounded end on the right
+  if (w <= 0) return "";
+  r = Math.min(r, hgt / 2, w);
+  return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + hgt - r}Q${x + w},${y + hgt} ${x + w - r},${y + hgt}H${x}Z`;
+}
+
+/* ---------------- card with table-view toggle ---------------- */
+function card(parent, { title, sub, span = "s6", note, legend }) {
+  const body = h("div", { class: "chart" });
+  const tv = h("button", { class: "tv", type: "button", "aria-pressed": "false", text: "Table" });
+  const head = h("div", { class: "card-h" }, h("div", {}, h("h2", { text: title }), sub ? h("div", { class: "sub", text: sub }) : null), tv);
+  const c = h("section", { class: "card " + span }, head);
+  if (legend) c.append(legend);
+  c.append(body);
+  if (note) c.append(h("div", { class: "note", text: note }));
+  parent.append(c);
+  const key = title;
+  const api = {
+    body, table: null, draw: null,
+    render() {
+      body.replaceChildren();
+      if (state.tables[key] && api.table) body.append(tableView(api.table));
+      else if (api.draw) api.draw(body);
+      tv.textContent = state.tables[key] ? "Chart" : "Table";
+      tv.setAttribute("aria-pressed", state.tables[key] ? "true" : "false");
+      if (legend) legend.hidden = !!state.tables[key];
+    },
+  };
+  tv.addEventListener("click", () => { state.tables[key] = !state.tables[key]; api.render(); });
+  return api;
+}
+function tableView({ cols, rows }) {
+  const t = h("table", {}, h("thead", {}, h("tr", {}, cols.map((c, i) => h("th", { class: i ? "n" : "", text: c })))),
+    h("tbody", {}, rows.map(r => h("tr", {}, r.map((v, i) => h("td", { class: i ? "n" : "", text: v }))))));
+  return h("div", { class: "tbl-wrap" }, t);
+}
+function legendEl(items) {
+  return h("div", { class: "legend" }, items.map(it => h("span", {}, h("span", { class: it.kind || "key-box", style: it.kind === "key-ring" ? "" : `background:${it.color}` }), it.label)));
+}
+
+/* ---------------- charts ---------------- */
+function widthOf(el) { return Math.max(280, Math.round(el.getBoundingClientRect().width || el.parentElement.getBoundingClientRect().width || 600)); }
+
+function columnChart(el, { labels, values, fmt, tipRows, height = 220, labelIdx = [], color = "var(--accent)", xEvery }) {
+  const W0 = widthOf(el), H0 = height, m = { l: 52, r: 8, t: 18, b: 30 };
+  const iw = W0 - m.l - m.r, ih = H0 - m.t - m.b;
+  const max = niceMax(Math.max(...values, 0));
+  const svg = s("svg", { viewBox: `0 0 ${W0} ${H0}`, role: "img", "aria-label": "Column chart" });
+  for (const t of tickVals(max)) {
+    const y = m.t + ih - t / max * ih;
+    s("line", { x1: m.l, x2: W0 - m.r, y1: y, y2: y, style: `stroke:${t === 0 ? "var(--axis)" : "var(--grid)"};stroke-width:1` }, svg);
+    s("text", { x: m.l - 8, y: y + 4, "text-anchor": "end", class: "axis-t", text: fmt(t) }, svg);
+  }
+  const band = iw / values.length, bw = Math.min(24, Math.max(4, band - 2 - band * 0.3));
+  const every = xEvery || Math.ceil(values.length / Math.max(1, Math.floor(iw / 46)));
+  values.forEach((v, i) => {
+    const x = m.l + i * band + (band - bw) / 2, bh = v / max * ih, y = m.t + ih - bh;
+    const bar = s("path", { d: barPath(x, y, bw, bh), class: "mark", style: `fill:${color}` }, svg);
+    const hit = s("rect", { x: m.l + i * band, y: m.t, width: band, height: ih, class: "hit" }, svg);
+    hover(hit, labels[i], tipRows ? tipRows(i) : [{ value: fmt(v) }]);
+    hit.addEventListener("pointerenter", () => bar.style.opacity = .75);
+    hit.addEventListener("pointerleave", () => bar.style.opacity = 1);
+    if (i % every === 0) s("text", { x: m.l + i * band + band / 2, y: H0 - 10, "text-anchor": "middle", class: "axis-t", text: labels[i] }, svg);
+    if (labelIdx.includes(i) && bh > 0) s("text", { x: x + bw / 2, y: y - 6, "text-anchor": "middle", class: "val-t", text: fmt(v) }, svg);
+  });
+  el.append(svg);
+}
+
+function lineChart(el, { labels, series, fmt, yMax, yMin = 0, ref, height = 220, ticks = 4 }) {
+  const W0 = widthOf(el), H0 = height, m = { l: 52, r: 64, t: 14, b: 30 };
+  const iw = W0 - m.l - m.r, ih = H0 - m.t - m.b;
+  const all = series.flatMap(sr => sr.values).filter(v => v != null);
+  const max = yMax != null ? yMax : niceMax(Math.max(...all, ref ? ref.value : 0));
+  const min = yMin;
+  const X = i => m.l + (labels.length === 1 ? iw / 2 : i / (labels.length - 1) * iw);
+  const Y = v => m.t + ih - (v - min) / (max - min) * ih;
+  const svg = s("svg", { viewBox: `0 0 ${W0} ${H0}`, role: "img", "aria-label": "Line chart" });
+  for (const t of tickVals(max - min, ticks)) {
+    const v = min + t, y = Y(v);
+    s("line", { x1: m.l, x2: W0 - m.r, y1: y, y2: y, style: `stroke:${t === 0 ? "var(--axis)" : "var(--grid)"};stroke-width:1` }, svg);
+    s("text", { x: m.l - 8, y: y + 4, "text-anchor": "end", class: "axis-t", text: fmt(v) }, svg);
+  }
+  if (ref) {
+    const y = Y(ref.value);
+    s("line", { x1: m.l, x2: W0 - m.r, y1: y, y2: y, style: "stroke:var(--ink-2);stroke-width:1" }, svg);
+    s("text", { x: m.l + 6, y: y - 5, class: "axis-t", text: ref.label }, svg);
+  }
+  const every = Math.ceil(labels.length / Math.max(1, Math.floor(iw / 46)));
+  labels.forEach((l, i) => { if (i % every === 0) s("text", { x: X(i), y: H0 - 10, "text-anchor": "middle", class: "axis-t", text: l }, svg); });
+  for (const sr of series) {
+    let d = "", pen = false;
+    sr.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1); pen = true; });
+    s("path", { d, style: `fill:none;stroke:${sr.color};stroke-width:2;stroke-linejoin:round;stroke-linecap:round` }, svg);
+    let li = sr.values.length - 1; while (li >= 0 && sr.values[li] == null) li--;
+    if (li >= 0) {
+      s("circle", { cx: X(li), cy: Y(sr.values[li]), r: 4, style: `fill:${sr.color};stroke:var(--card);stroke-width:2` }, svg);
+      if (series.length <= 3 && !sr.noEndLabel) s("text", { x: X(li) + 8, y: Y(sr.values[li]) + 4 + (sr.dy || 0), class: "val-t", text: fmt(sr.values[li]) }, svg);
+    }
+  }
+  const cross = s("line", { y1: m.t, y2: m.t + ih, style: "stroke:var(--ink-2);stroke-width:1", visibility: "hidden" }, svg);
+  const hit = s("rect", { x: m.l, y: m.t, width: iw, height: ih, class: "hit", tabindex: "0" }, svg);
+  const at = i => [labels[i], series.map(sr => ({ color: sr.color, value: sr.values[i] == null ? "–" : fmt(sr.values[i]), label: series.length > 1 ? sr.name : "" }))];
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * W0 / r.width;
+    const i = Math.max(0, Math.min(labels.length - 1, Math.round((px - m.l) / (iw / Math.max(1, labels.length - 1)))));
+    cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("visibility", "visible");
+    showTip(ev, ...at(i));
+  };
+  hit.addEventListener("pointermove", move);
+  hit.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); hideTip(); });
+  hit.addEventListener("focus", () => focusTip(hit, ...at(labels.length - 1)));
+  hit.addEventListener("blur", hideTip);
+  el.append(svg);
+}
+
+function hbarChart(el, { rows, fmt, max, ref, labelW, barColor = () => "var(--accent)", tipRows }) {
+  const W0 = widthOf(el), rowH = 28, grpH = 26, m = { t: 4, b: 6, r: 58 };
+  const lw = labelW || Math.min(210, Math.max(120, W0 * 0.34));
+  let hgt = m.t + m.b, prev = null;
+  rows.forEach(r => { if (r.group && r.group !== prev) { hgt += grpH; prev = r.group; } hgt += rowH; });
+  const iw = W0 - lw - m.r - 8;
+  const mx = max || niceMax(Math.max(...rows.map(r => r.value), ref ? ref.value : 0), 4);
+  const svg = s("svg", { viewBox: `0 0 ${W0} ${hgt}`, role: "img", "aria-label": "Bar chart" });
+  let y = m.t; prev = null;
+  const x0 = lw + 8;
+  rows.forEach((r, i) => {
+    if (r.group && r.group !== prev) { s("text", { x: 0, y: y + 17, class: "grp-t", text: r.group }, svg); y += grpH; prev = r.group; }
+    const bw = Math.max(0, r.value / mx * iw), by = y + (rowH - 14) / 2;
+    s("text", { x: lw, y: y + rowH / 2 + 4, "text-anchor": "end", class: "lbl-t", text: r.label }, svg);
+    s("rect", { x: x0, y: by, width: iw, height: 14, rx: 3, style: "fill:var(--card-2)" }, svg);
+    const bar = s("path", { d: hbarPath(x0, by, bw, 14), class: "mark", style: `fill:${barColor(r, i)}` }, svg);
+    s("text", { x: x0 + bw + 6, y: y + rowH / 2 + 4, class: "val-t", text: r.text || fmt(r.value) }, svg);
+    const hit = s("rect", { x: 0, y, width: W0, height: rowH, class: "hit" }, svg);
+    hover(hit, r.label, tipRows ? tipRows(r) : [{ value: fmt(r.value) }]);
+    hit.addEventListener("pointerenter", () => bar.style.opacity = .75);
+    hit.addEventListener("pointerleave", () => bar.style.opacity = 1);
+    y += rowH;
+  });
+  if (ref) {
+    const x = x0 + ref.value / mx * iw;
+    s("line", { x1: x, x2: x, y1: m.t, y2: hgt - m.b, style: "stroke:var(--ink-2);stroke-width:1" }, svg);
+    s("text", { x: x + 4, y: hgt - m.b - 2, class: "axis-t", text: ref.label }, svg);
+  }
+  el.append(svg);
+}
+
+function dumbbell(el, { rows, fmt, aName, bName, labelW, padR = 40 }) {
+  const W0 = widthOf(el), rowH = 30, m = { t: 22, b: 6, r: padR };
+  const lw = labelW || Math.min(200, Math.max(110, W0 * 0.32));
+  const hgt = m.t + m.b + rows.length * rowH, x0 = lw + 12, iw = W0 - x0 - m.r;
+  const mx = niceMax(Math.max(...rows.flatMap(r => [r.a, r.b])), 4);
+  const X = v => x0 + v / mx * iw;
+  const svg = s("svg", { viewBox: `0 0 ${W0} ${hgt}`, role: "img", "aria-label": "Dumbbell chart" });
+  for (const t of tickVals(mx)) {
+    s("line", { x1: X(t), x2: X(t), y1: m.t - 4, y2: hgt - m.b, style: "stroke:var(--grid);stroke-width:1" }, svg);
+    s("text", { x: X(t), y: 11, "text-anchor": "middle", class: "axis-t", text: fmt(t) }, svg);
+  }
+  rows.forEach((r, i) => {
+    const y = m.t + i * rowH + rowH / 2;
+    s("text", { x: lw, y: y + 4, "text-anchor": "end", class: "lbl-t", text: r.label }, svg);
+    s("line", { x1: X(Math.min(r.a, r.b)), x2: X(Math.max(r.a, r.b)), y1: y, y2: y, style: "stroke:var(--axis);stroke-width:2" }, svg);
+    s("circle", { cx: X(r.a), cy: y, r: 5, style: "fill:var(--card);stroke:var(--deemph);stroke-width:2.5" }, svg);
+    s("circle", { cx: X(r.b), cy: y, r: 5, style: "fill:var(--accent);stroke:var(--card);stroke-width:2" }, svg);
+    s("text", { x: X(Math.max(r.a, r.b)) + 10, y: y + 4, class: "val-t", text: r.text || fmt(r.b) }, svg);
+    const hit = s("rect", { x: 0, y: y - rowH / 2, width: W0, height: rowH, class: "hit" }, svg);
+    hover(hit, r.label, [{ value: fmt(r.a), label: aName }, { value: fmt(r.b), label: bName, color: "var(--accent)" }].concat(r.extra || []));
+  });
+  el.append(svg);
+}
+
+function heatmap(el, { rows, cols, value, fmt, tipRows, colEvery = 1, cellH = 26, showValues = false, labelW = 64, domain }) {
+  const W0 = widthOf(el), m = { t: 22, b: 4 };
+  const cw = (W0 - labelW - 4) / cols.length;
+  const hgt = m.t + rows.length * cellH + m.b;
+  const vals = []; rows.forEach((_, r) => cols.forEach((_, c) => { const v = value(r, c); if (v != null) vals.push(v); }));
+  const [lo, hi] = domain || [Math.min(...vals), Math.max(...vals)];
+  const step = v => hi === lo ? 4 : Math.min(7, 1 + Math.floor((v - lo) / (hi - lo) * 6.999));
+  const svg = s("svg", { viewBox: `0 0 ${W0} ${hgt}`, role: "img", "aria-label": "Heatmap" });
+  cols.forEach((c, j) => { if (j % colEvery === 0) s("text", { x: labelW + 4 + j * cw + cw / 2, y: 13, "text-anchor": "middle", class: "axis-t", text: c }, svg); });
+  rows.forEach((rl, i) => {
+    const y = m.t + i * cellH;
+    s("text", { x: labelW - 6, y: y + cellH / 2 + 4, "text-anchor": "end", class: "lbl-t", text: rl }, svg);
+    cols.forEach((cl, j) => {
+      const v = value(i, j), x = labelW + 4 + j * cw;
+      const st = v == null ? 0 : step(v);
+      const cell = s("rect", { x: x + 1, y: y + 1, width: Math.max(1, cw - 2), height: cellH - 2, rx: 3,
+        style: `fill:${v == null ? "var(--card-2)" : `var(--seq-${st})`}` }, svg);
+      if (showValues && v != null && cw > 34) s("text", { x: x + cw / 2, y: y + cellH / 2 + 4, "text-anchor": "middle",
+        style: `fill:${st >= 5 ? "var(--seq-ink-hi)" : "var(--seq-ink-lo)"};font:500 11.5px var(--sans);font-variant-numeric:tabular-nums`, text: fmt(v) }, svg);
+      if (v != null) hover(cell, `${rl} · ${cl}`, tipRows ? tipRows(i, j) : [{ value: fmt(v) }]);
+    });
+  });
+  el.append(svg);
+  const scale = h("div", { class: "legend", style: "align-items:center" }, h("span", { text: fmt(lo) }),
+    h("span", { style: "gap:2px" }, [1, 2, 3, 4, 5, 6, 7].map(k => h("span", { class: "key-box", style: `background:var(--seq-${k});width:18px` }))),
+    h("span", { text: fmt(hi) }));
+  el.append(scale);
+}
+
+function sparkline(values) {
+  const W0 = 160, H0 = 26, v = values.filter(x => x != null);
+  const svg = s("svg", { viewBox: `0 0 ${W0} ${H0}`, preserveAspectRatio: "none", "aria-hidden": "true" });
+  if (v.length < 2) return svg;
+  const mn = Math.min(...v), mx = Math.max(...v), rng = mx - mn || 1;
+  const X = i => 2 + i / (values.length - 1) * (W0 - 8), Y = x => 3 + (1 - (x - mn) / rng) * (H0 - 6);
+  let d = "", pen = false;
+  values.forEach((x, i) => { if (x == null) { pen = false; return; } d += (pen ? "L" : "M") + X(i).toFixed(1) + "," + Y(x).toFixed(1); pen = true; });
+  s("path", { d, style: "fill:none;stroke:var(--deemph);stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke" }, svg);
+  const li = values.length - 1;
+  if (values[li] != null) s("circle", { cx: X(li), cy: Y(values[li]), r: 2.6, style: "fill:var(--accent)" }, svg);
+  return svg;
+}
+
+/* ---------------- data selection & aggregation ---------------- */
+function woIdx(range, { ignoreTech = false, ignoreCat = false } = {}) {
+  const out = [];
+  for (let i = 0; i < NW; i++) {
+    const d = W.d[i];
+    if (d < range.from || d > range.to) continue;
+    if (!ignoreTech && state.tech >= 0 && W.m[i] !== state.tech) continue;
+    if (!ignoreCat && state.cat >= 0 && W.c[i] !== state.cat) continue;
+    out.push(i);
+  }
+  return out;
+}
+function apIdx(range) {
+  const out = [];
+  for (let i = 0; i < AP.d.length; i++) if (AP.d[i] >= range.from && AP.d[i] <= range.to) out.push(i);
+  return out;
+}
+function agg(idx) {
+  const a = { n: 0, paid: 0, ns: 0, gp: 0, pr: 0, pc: 0, prPaid: 0, pcPaid: 0, hb: 0, ha: 0, otN: 0, ot: 0, csN: 0, cs: 0, cs12: 0,
+    so: 0, sp: 0, pwN: 0, pw: 0, cb: 0, ta: 0, taN: 0, nw: 0, open: 0 };
+  for (const i of idx) {
+    a.n++; a.ns += W.ns[i]; a.gp += W.gp[i]; a.hb += W.hb[i]; a.ha += W.ha[i];
+    if (!W.rw[i]) { a.paid++; a.prPaid += W.pr[i]; a.pcPaid += W.pc[i]; if (W.cb[i]) a.cb++; }
+    if (W.ot[i] != null) { a.otN++; a.ot += W.ot[i]; }
+    if (W.ta[i] != null) { a.taN++; a.ta += W.ta[i]; }
+    if (W.cs[i]) { a.csN++; a.cs += W.cs[i]; if (W.cs[i] <= 2) a.cs12++; }
+    if (W.so[i]) a.so++;
+    if (W.sp[i]) { a.sp++; if (W.pw[i] != null) { a.pwN++; a.pw += W.pw[i]; } }
+    if (W.nw[i]) a.nw++;
+    if (W.st[i] !== 0) a.open++;
+  }
+  a.margin = a.ns ? a.gp / a.ns * 100 : null;
+  a.aro = a.paid ? a.ns / a.paid : null;
+  a.onTime = a.otN ? a.ot / a.otN * 100 : null;
+  a.csat = a.csN ? a.cs / a.csN : null;
+  a.eff = a.ha ? a.hb / a.ha * 100 : null;
+  a.cbRate = a.paid ? a.cb / a.paid * 100 : null;
+  a.soRate = a.n ? a.so / a.n * 100 : null;
+  a.partsMargin = a.prPaid ? (a.prPaid - a.pcPaid) / a.prPaid * 100 : null;
+  a.avgWait = a.pwN ? a.pw / a.pwN : null;
+  a.tat = a.taN ? a.ta / a.taN : null;
+  return a;
+}
+function noShow(idx) {
+  let n = 0, ns = 0;
+  for (const i of idx) { const st = AP.s[i]; if (st <= 2) { n++; if (st === 1) ns++; } }
+  return n ? ns / n * 100 : null;
+}
+function byMonth(idx, range) {
+  const m0 = monthOf(range.from), m1 = monthOf(range.to), buckets = Array.from({ length: m1 - m0 + 1 }, () => []);
+  for (const i of idx) buckets[monthOf(W.d[i]) - m0].push(i);
+  return { keys: buckets.map((_, k) => m0 + k), buckets };
+}
+function customers(idx) {
+  const map = new Map();
+  for (const i of idx) {
+    if (W.rw[i]) continue;
+    let c = map.get(W.cu[i]);
+    if (!c) { c = { visits: 0, ns: 0, ch: W.ch[i] }; map.set(W.cu[i], c); }
+    c.visits++; c.ns += W.ns[i];
+  }
+  return map;
+}
+
+/* ---------------- KPI tile ---------------- */
+function kpi(parent, { label, value, cur, prev, fmtDelta, upIsGood = true, spark, foot }) {
+  const t = h("div", { class: "kpi" }, h("div", { class: "l", text: label }), h("div", { class: "v", text: value }));
+  const d = h("div", { class: "d" });
+  if (prev != null && cur != null && isFinite(prev) && isFinite(cur)) {
+    const diff = cur - prev, flat = Math.abs(diff) < 1e-9;
+    const good = upIsGood ? diff > 0 : diff < 0;
+    d.append(h("b", { class: flat ? "flat" : good ? "up-good" : "down-bad", text: (flat ? "" : diff > 0 ? "▲ " : "▼ ") + fmtDelta(diff, prev) }),
+      h("span", { text: "vs " + PERIODS[state.period].cmp.label }));
+  } else if (foot) d.append(h("span", { text: foot }));
+  else d.append(h("span", { text: PERIODS[state.period].label }));
+  t.append(d);
+  if (spark) t.append(sparkline(spark));
+  parent.append(t);
+}
+const dPct = (diff, prev) => (prev ? Math.abs(diff / prev * 100).toFixed(1) : "–") + "%";
+const dPts = diff => Math.abs(diff).toFixed(1) + " pts";
+const dAbs2 = diff => Math.abs(diff).toFixed(2);
+
+/* ---------------- pages ---------------- */
+function page(view) {
+  const P = PERIODS[state.period];
+  const idx = woIdx(P), A = agg(idx);
+  const cmpIdx = P.cmp ? woIdx(P.cmp) : null, C = cmpIdx ? agg(cmpIdx) : null;
+  const mon = byMonth(idx, P);
+  const monAgg = mon.buckets.map(agg);
+  const labels = mon.keys.map(monthLabel);
+  return { P, idx, A, C, mon, monAgg, labels };
+}
+
+const PAGES = {};
+
+PAGES.overview = view => {
+  const { P, idx, A, C, monAgg, labels } = page(view);
+  const ap = apIdx(P), apC = P.cmp ? apIdx(P.cmp) : null;
+  const k = h("div", { class: "kpis" }); view.append(k);
+  kpi(k, { label: "Net sales", value: money(A.ns), cur: A.ns, prev: C && C.ns, fmtDelta: dPct, spark: monAgg.map(a => a.ns) });
+  kpi(k, { label: "Gross margin", value: pct(A.margin), cur: A.margin, prev: C && C.margin, fmtDelta: dPts, spark: monAgg.map(a => a.margin) });
+  kpi(k, { label: "Car count", value: int(A.n), cur: A.n, prev: C && C.n, fmtDelta: dPct, spark: monAgg.map(a => a.n) });
+  kpi(k, { label: "Average repair order", value: money0(A.aro), cur: A.aro, prev: C && C.aro, fmtDelta: dPct, spark: monAgg.map(a => a.aro) });
+  kpi(k, { label: "On-time completion", value: pct(A.onTime), cur: A.onTime, prev: C && C.onTime, fmtDelta: dPts, spark: monAgg.map(a => a.onTime) });
+  kpi(k, { label: "Customer rating", value: num2(A.csat) + " / 5", cur: A.csat, prev: C && C.csat, fmtDelta: dAbs2, spark: monAgg.map(a => a.csat) });
+  kpi(k, { label: "No-show rate", value: pct(noShow(ap)), cur: noShow(ap), prev: apC && noShow(apC), fmtDelta: dPts, upIsGood: false,
+    foot: "all appointments" });
+
+  const f = h("section", { class: "card s12" }, h("div", { class: "card-h" }, h("div", {}, h("h2", { text: "What the data says" }),
+    h("div", { class: "sub", text: "Headline findings from the full 24 months · not affected by filters" }))));
+  const list = h("div", { class: "finds" });
+  for (const x of D.findings) {
+    list.append(h("div", { class: "find" }, h("div", { class: "big", text: x.stat }), h("div", { class: "t", text: x.title }),
+      h("div", { class: "b", text: x.body }), h("button", { type: "button", text: "Open " + TAB_NAMES[x.tab] + " →", onclick: () => go(x.tab) })));
+  }
+  f.append(list); view.append(f);
+
+  const c1 = card(view, { title: "Net sales by month", sub: "Labor + parts − discounts, before tax" });
+  const maxI = monAgg.reduce((b, a, i) => a.ns > monAgg[b].ns ? i : b, 0);
+  c1.draw = el => columnChart(el, { labels, values: monAgg.map(a => a.ns), fmt: money, labelIdx: [maxI, monAgg.length - 1],
+    tipRows: i => [{ value: money0(monAgg[i].ns), label: "net sales" }, { value: money0(monAgg[i].gp), label: "gross profit" },
+      { value: pct(monAgg[i].margin), label: "margin" }, { value: int(monAgg[i].n), label: "work orders" }] });
+  c1.table = { cols: ["Month", "Net sales", "Gross profit", "Margin", "Work orders"],
+    rows: monAgg.map((a, i) => [labels[i], money0(a.ns), money0(a.gp), pct(a.margin), int(a.n)]) };
+  c1.render();
+
+  const c2 = card(view, { title: "On-time completion by month", sub: "Finished by the time promised at drop-off" });
+  c2.draw = el => lineChart(el, { labels, series: [{ name: "On-time", values: monAgg.map(a => a.onTime), color: "var(--accent)" }],
+    fmt: v => v.toFixed(0) + "%", yMin: 50, yMax: 100, ticks: 5, ref: { value: 90, label: "Target 90%" } });
+  c2.table = { cols: ["Month", "On-time", "Avg turnaround (hrs)", "Jobs hit by stockout"],
+    rows: monAgg.map((a, i) => [labels[i], pct(a.onTime), num1(a.tat), int(a.so)]) };
+  c2.render();
+
+  const cats = M.cats.map((name, ci) => { const a = agg(idx.filter(i => W.c[i] === ci && !W.rw[i])); return { label: name, value: a.ns, a }; })
+    .filter(r => r.a.n).sort((x, y) => y.value - x.value);
+  const total = cats.reduce((t, r) => t + r.value, 0);
+  const c3 = card(view, { title: "Net sales by service category", sub: "Category of the biggest job on each repair order" });
+  c3.draw = el => hbarChart(el, { rows: cats.map(r => ({ ...r, text: `${money(r.value)} · ${pct(r.value / total * 100, 0)}` })), fmt: money,
+    tipRows: r => [{ value: money0(r.value), label: "net sales" }, { value: int(r.a.n), label: "jobs" }, { value: money0(r.a.aro), label: "avg ticket" }, { value: pct(r.a.margin), label: "gross margin" }] });
+  c3.table = { cols: ["Category", "Net sales", "Share", "Jobs", "Avg ticket", "Gross margin"],
+    rows: cats.map(r => [r.label, money0(r.value), pct(r.value / total * 100), int(r.a.n), money0(r.a.aro), pct(r.a.margin)]) };
+  c3.render();
+
+  const mk = M.makes.map((name, i) => { const a = agg(idx.filter(j => W.mk[j] === i && !W.rw[j])); return { label: name, value: a.ns, a }; })
+    .filter(r => r.a.n).sort((x, y) => y.value - x.value).slice(0, 10);
+  const c4 = card(view, { title: "Top 10 vehicle makes by net sales", sub: "Label shows the average ticket for that make" });
+  c4.draw = el => hbarChart(el, { rows: mk.map(r => ({ ...r, text: `${money(r.value)} · ${money0(r.a.aro)} avg` })), fmt: money,
+    tipRows: r => [{ value: money0(r.value), label: "net sales" }, { value: int(r.a.n), label: "jobs" }, { value: money0(r.a.aro), label: "avg ticket" }] });
+  c4.table = { cols: ["Make", "Net sales", "Jobs", "Avg ticket"], rows: mk.map(r => [r.label, money0(r.value), int(r.a.n), money0(r.a.aro)]) };
+  c4.render();
+};
+
+PAGES.floor = view => {
+  const { P, idx, A, C, monAgg, labels } = page(view);
+  const snap = new Date(D.meta.snapshot.replace(" ", "T") + "Z");
+  const pastPromise = D.wip.filter(w => new Date(w.promised + ":00Z") < snap).length;
+  const k = h("div", { class: "kpis" }); view.append(k);
+  kpi(k, { label: "Open repair orders now", value: int(D.wip.length), foot: "at snapshot" });
+  kpi(k, { label: "Past promised time now", value: int(pastPromise), foot: "at snapshot" });
+  kpi(k, { label: "Avg turnaround", value: num1(A.tat) + " hrs", cur: A.tat, prev: C && C.tat, fmtDelta: (d) => Math.abs(d).toFixed(1) + " hrs", upIsGood: false, spark: monAgg.map(a => a.tat) });
+  kpi(k, { label: "Jobs delayed by a stockout", value: pct(A.soRate), cur: A.soRate, prev: C && C.soRate, fmtDelta: dPts, upIsGood: false, spark: monAgg.map(a => a.soRate) });
+  kpi(k, { label: "On-time completion", value: pct(A.onTime), cur: A.onTime, prev: C && C.onTime, fmtDelta: dPts, spark: monAgg.map(a => a.onTime) });
+
+  // WIP board
+  const wb = h("section", { class: "card s12" }, h("div", { class: "card-h" }, h("div", {}, h("h2", { text: "Bay board: open repair orders" }),
+    h("div", { class: "sub", text: "Every job not yet finished at the snapshot, oldest first · not affected by filters" }))));
+  const statusChip = st => st === "Waiting on Parts" ? chip("warn", st, "clock") : st === "Open" ? chip("neutral", "Not started") : chip("neutral", st, "wrench");
+  const rows = D.wip.map(w => {
+    const ageH = (snap - new Date(w.opened + ":00Z")) / 36e5, late = new Date(w.promised + ":00Z") < snap;
+    return h("tr", {}, h("td", { class: "mono", text: "RO-" + w.id }), h("td", {}, statusChip(w.status)), h("td", { text: w.vehicle }),
+      h("td", { text: w.service }), h("td", { text: w.tech }), h("td", { text: dateTime(w.opened) }), h("td", { text: dateTime(w.promised) }),
+      h("td", { class: "n", text: ageH >= 24 ? (ageH / 24).toFixed(1) + " days" : ageH.toFixed(1) + " hrs" }),
+      h("td", {}, late ? chip("crit", "Past promise", "alert") : chip("good", "On track", "check")),
+      h("td", { class: "mono", text: w.parts || "—" }));
+  });
+  wb.append(h("div", { class: "tbl-wrap" }, h("table", {}, h("thead", {}, h("tr", {}, ["RO #", "Status", "Vehicle", "Service", "Technician", "Opened", "Promised", "Age", "Promise", "Parts in transit"]
+    .map((c, i) => h("th", { class: i === 7 ? "n" : "", text: c })))), h("tbody", {}, rows))));
+  view.append(wb);
+
+  // drivers
+  const done = idx.filter(i => W.st[i] === 0);
+  const seg = (group, label, f) => { const s0 = done.filter(f); return { group, label, value: agg(s0).onTime || 0, n: s0.length }; };
+  const lvl = l => i => M.mechs[W.m[i]].level === l;
+  const drv = [
+    seg("Parts", "All parts on the shelf", i => !W.sp[i]),
+    seg("Parts", "Stocked part ran out", i => W.so[i]),
+    seg("Parts", "Special-order part", i => W.sp[i] && !W.so[i]),
+    seg("Technician", "Master technician", lvl("Master Technician")),
+    seg("Technician", "Technician", lvl("Technician")),
+    seg("Technician", "Apprentice", lvl("Apprentice")),
+    seg("Season", "Summer (Jun – Aug)", i => { const mo = toDate(W.d[i]).getUTCMonth(); return mo >= 5 && mo <= 7; }),
+    seg("Season", "Rest of year", i => { const mo = toDate(W.d[i]).getUTCMonth(); return mo < 5 || mo > 7; }),
+  ].filter(r => r.n > 0);
+  const c1 = card(view, { title: "What makes a job late", sub: "On-time completion rate by segment" });
+  c1.draw = el => hbarChart(el, { rows: drv, fmt: v => pct(v, 0), max: 100, ref: { value: 90, label: "Target" },
+    barColor: r => r.value < 50 ? "var(--accent)" : "var(--deemph)", tipRows: r => [{ value: pct(r.value), label: "on time" }, { value: int(r.n), label: "jobs" }] });
+  c1.table = { cols: ["Segment", "On-time", "Jobs"], rows: drv.map(r => [`${r.group}: ${r.label}`, pct(r.value), int(r.n)]) };
+  c1.render();
+
+  // check-in heatmap
+  const ap = apIdx(P).filter(i => AP.s[i] === 0);
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const cell = Array.from({ length: 6 }, () => M.slots.map(() => ({ n: 0, w: 0, over: 0 })));
+  for (const i of ap) { const c = cell[AP.wd[i]][AP.sl[i]]; c.n++; c.w += AP.w[i] || 0; if ((AP.w[i] || 0) > 15) c.over++; }
+  const avgW = (r, c) => cell[r][c].n >= 3 ? cell[r][c].w / cell[r][c].n : null;
+  const c2 = card(view, { title: "Wait at check-in by appointment slot", sub: "Average minutes from appointment time to write-up · date filter only" });
+  c2.draw = el => heatmap(el, { rows: days, cols: M.slots, value: avgW, fmt: v => v.toFixed(0) + " min", colEvery: widthOf(el) < 560 ? 4 : 2, labelW: 40,
+    tipRows: (r, c) => [{ value: avgW(r, c).toFixed(1) + " min", label: "avg wait" }, { value: int(cell[r][c].n), label: "appointments" },
+      { value: pct(cell[r][c].over / cell[r][c].n * 100, 0), label: "waited 15+ min" }] });
+  c2.table = { cols: ["Day · slot", "Appointments", "Avg wait (min)", "Waited 15+ min"],
+    rows: days.flatMap((d, r) => M.slots.map((sl, c) => cell[r][c].n ? [`${d} ${sl}`, int(cell[r][c].n), num1(cell[r][c].w / cell[r][c].n), pct(cell[r][c].over / cell[r][c].n * 100, 0)] : null).filter(Boolean)) };
+  c2.render();
+
+  // no-shows by lead time
+  const all = apIdx(P).filter(i => AP.s[i] <= 2);
+  const buckets = [["0–2 days", 0, 2], ["3–7 days", 3, 7], ["8–14 days", 8, 14], ["15+ days", 15, 999]].map(([l, a, b]) => {
+    const sel = all.filter(i => AP.ld[i] >= a && AP.ld[i] <= b); return { l, n: sel.length, ns: noShow(sel) || 0 };
+  });
+  const c3 = card(view, { title: "No-show rate by how far ahead it was booked", sub: "Appointments that were not cancelled but never arrived · date filter only" });
+  c3.draw = el => columnChart(el, { labels: buckets.map(b => b.l), values: buckets.map(b => b.ns), fmt: v => pct(v, 0), labelIdx: [0, 1, 2, 3], height: 200,
+    tipRows: i => [{ value: pct(buckets[i].ns), label: "no-show" }, { value: int(buckets[i].n), label: "appointments" }] });
+  c3.table = { cols: ["Booked ahead", "No-show rate", "Appointments"], rows: buckets.map(b => [b.l, pct(b.ns), int(b.n)]) };
+  c3.render();
+
+  // turnaround distribution
+  const tb = [["< 2 hrs", 0, 2], ["2–4 hrs", 2, 4], ["4–8 hrs", 4, 8], ["8–24 hrs", 8, 24], ["1–3 days", 24, 72], ["3+ days", 72, 1e9]].map(([l, a, b]) => ({
+    l, n: done.filter(i => W.ta[i] >= a && W.ta[i] < b).length }));
+  const tot = tb.reduce((t, b) => t + b.n, 0) || 1;
+  const c4 = card(view, { title: "Turnaround time", sub: "Share of completed jobs by clock time from drop-off to done" });
+  c4.draw = el => columnChart(el, { labels: tb.map(b => b.l), values: tb.map(b => b.n / tot * 100), fmt: v => pct(v, 0), labelIdx: [0, 1, 2, 3, 4, 5], height: 200,
+    tipRows: i => [{ value: pct(tb[i].n / tot * 100), label: "of jobs" }, { value: int(tb[i].n), label: "jobs" }] });
+  c4.table = { cols: ["Turnaround", "Share", "Jobs"], rows: tb.map(b => [b.l, pct(b.n / tot * 100), int(b.n)]) };
+  c4.render();
+};
+
+PAGES.techs = view => {
+  const { P, idx, A, C, mon, labels } = page(view);
+  const idxAllTech = woIdx(P, { ignoreTech: true });
+  const k = h("div", { class: "kpis" }); view.append(k);
+  kpi(k, { label: "Shop efficiency", value: pct(A.eff), cur: A.eff, prev: C && C.eff, fmtDelta: dPts });
+  kpi(k, { label: "Hours billed", value: int(A.hb), cur: A.hb, prev: C && C.hb, fmtDelta: dPct });
+  kpi(k, { label: "Comeback rate", value: pct(A.cbRate, 2), cur: A.cbRate, prev: C && C.cbRate, fmtDelta: dPts, upIsGood: false });
+  kpi(k, { label: "Comebacks", value: int(A.cb), cur: A.cb, prev: C && C.cb, fmtDelta: dPct, upIsGood: false });
+
+  const techs = M.mechs.map((m, mi) => ({ ...m, mi, a: agg(idx.filter(i => W.m[i] === mi)) })).filter(t => t.a.n);
+  const shopCb = agg(idxAllTech).cbRate;
+  const sc = h("section", { class: "card s12" }, h("div", { class: "card-h" }, h("div", {}, h("h2", { text: "Technician scorecard" }),
+    h("div", { class: "sub", text: "Efficiency = flat-rate hours billed ÷ hours clocked. The tick marks 100% (book time)." }))));
+  const body = techs.sort((x, y) => y.a.eff - x.a.eff).map(t => {
+    const action = t.a.cbRate > 1.5 * shopCb ? chip("crit", "Quality review", "alert") : t.a.eff < 85 ? chip("warn", "Coaching", "wrench") : chip("good", "On track", "check");
+    const meter = h("div", { class: "meter" }, h("div", { class: "track" }, h("div", { class: "fill", style: `width:${Math.min(100, t.a.eff / 130 * 100)}%` }),
+      h("div", { class: "tick", style: `left:${100 / 130 * 100}%` })), h("span", { text: pct(t.a.eff) }));
+    return h("tr", {}, h("td", {}, h("div", { text: t.name }), h("div", { class: "sub-t", text: t.level })), h("td", { class: "n", text: int(t.a.n) }),
+      h("td", {}, meter), h("td", { class: "n", text: pct(t.a.onTime) }), h("td", { class: "n", text: pct(t.a.cbRate, 2) }),
+      h("td", { class: "n", text: num2(t.a.csat) }), h("td", { class: "n", text: money(t.a.ns) }), h("td", {}, action));
+  });
+  sc.append(h("div", { class: "tbl-wrap" }, h("table", {}, h("thead", {}, h("tr", {}, ["Technician", "Jobs", "Efficiency", "On-time", "Comeback rate", "Rating", "Net sales", "Action"]
+    .map((c, i) => h("th", { class: [1, 3, 4, 5, 6].includes(i) ? "n" : "", text: c })))), h("tbody", {}, body))));
+  view.append(sc);
+
+  const levels = [["Master Technician", "var(--accent)"], ["Technician", "var(--s2)"], ["Apprentice", "var(--s3)"]];
+  const series = levels.map(([lv, color]) => ({ name: lv, color,
+    values: mon.buckets.map(b => { const sel = b.filter(i => M.mechs[W.m[i]].level === lv); return sel.length >= 5 ? agg(sel).eff : null; }) }))
+    .filter(sr => sr.values.some(v => v != null));
+  const leg = legendEl(series.map(sr => ({ label: sr.name, color: sr.color, kind: "key-line" })));
+  const c1 = card(view, { title: "Efficiency by month and skill level", sub: "Apprentices are the ones to watch: are they closing the gap?", legend: leg });
+  c1.draw = el => lineChart(el, { labels, series, fmt: v => v.toFixed(0) + "%", yMin: 50, yMax: 130, ref: { value: 100, label: "Book time" } });
+  c1.table = { cols: ["Month"].concat(series.map(sr => sr.name)), rows: labels.map((l, i) => [l].concat(series.map(sr => pct(sr.values[i])))) };
+  c1.render();
+
+  const cbRows = techs.map(t => ({ label: t.name, value: t.a.cbRate || 0, a: t.a })).sort((x, y) => y.value - x.value);
+  const c2 = card(view, { title: "Comeback rate by technician", sub: "Customer-pay jobs that came back for a warranty rework. Highlighted: over 1.5× the shop rate." });
+  c2.draw = el => hbarChart(el, { rows: cbRows, fmt: v => pct(v, 1), ref: { value: shopCb, label: "Shop " + pct(shopCb, 1) },
+    barColor: r => r.value > 1.5 * shopCb ? "var(--accent)" : "var(--deemph)", tipRows: r => [{ value: pct(r.value, 2), label: "comeback rate" }, { value: int(r.a.cb), label: "comebacks" }, { value: int(r.a.paid), label: "customer-pay jobs" }] });
+  c2.table = { cols: ["Technician", "Comeback rate", "Comebacks", "Customer-pay jobs"], rows: cbRows.map(r => [r.label, pct(r.value, 2), int(r.a.cb), int(r.a.paid)]) };
+  c2.render();
+};
+
+PAGES.parts = view => {
+  const { P, idx, A, C, monAgg, labels } = page(view);
+  const inv = D.inventory;
+  const k = h("div", { class: "kpis" }); view.append(k);
+  kpi(k, { label: "Jobs hit by a stockout", value: int(A.so), cur: A.so, prev: C && C.so, fmtDelta: dPct, upIsGood: false, spark: monAgg.map(a => a.so) });
+  kpi(k, { label: "Avg wait for ordered parts", value: num1(A.avgWait) + " days", cur: A.avgWait, prev: C && C.avgWait, fmtDelta: d => Math.abs(d).toFixed(1) + " days", upIsGood: false });
+  kpi(k, { label: "Parts gross margin", value: pct(A.partsMargin), cur: A.partsMargin, prev: C && C.partsMargin, fmtDelta: dPts });
+  kpi(k, { label: "Inventory on hand", value: money(inv.reduce((t, p) => t + p.value, 0)), foot: "at snapshot, at cost" });
+
+  const c1 = card(view, { title: "Jobs hit by a stockout, by month", sub: "A normally stocked part was out and had to be ordered" });
+  const maxI = monAgg.reduce((b, a, i) => a.so > monAgg[b].so ? i : b, 0);
+  c1.draw = el => columnChart(el, { labels, values: monAgg.map(a => a.so), fmt: int, labelIdx: [maxI],
+    tipRows: i => [{ value: int(monAgg[i].so), label: "jobs hit" }, { value: pct(monAgg[i].soRate), label: "of all jobs" }, { value: pct(monAgg[i].onTime), label: "on-time (all jobs)" }] });
+  c1.table = { cols: ["Month", "Jobs hit", "Share of jobs"], rows: monAgg.map((a, i) => [labels[i], int(a.so), pct(a.soRate)]) };
+  c1.render();
+
+  const inRange = new Set(idx);
+  const outs = new Map();
+  for (let j = 0; j < PL.w.length; j++) {
+    if (PL.s[j] || !inRange.has(PL.w[j])) continue;
+    const p = PL.p[j]; if (inv[p].specialOnly) continue;
+    outs.set(p, (outs.get(p) || 0) + 1);
+  }
+  const outRows = [...outs.entries()].map(([p, n]) => ({ label: M.parts[p].name, value: n, p })).sort((x, y) => y.value - x.value).slice(0, 8);
+  const c2 = card(view, { title: "Stocked parts that ran out most", sub: "Times a job needed the part and the shelf was empty" });
+  c2.draw = el => outRows.length ? hbarChart(el, { rows: outRows, fmt: int, labelW: Math.min(230, widthOf(el) * 0.45),
+    tipRows: r => [{ value: int(r.value), label: "times out" }, { value: inv[r.p].supplier, label: "" }] }) : el.append(h("p", { class: "note", text: "No stockouts in this selection." }));
+  c2.table = { cols: ["Part", "SKU", "Times out", "Supplier"], rows: outRows.map(r => [r.label, inv[r.p].sku, int(r.value), inv[r.p].supplier]) };
+  c2.render();
+
+  const rop = inv.filter(p => !p.specialOnly && p.sugRop > p.rop && p.out2025 > 0).sort((x, y) => (y.sugRop - y.rop) - (x.sugRop - x.rop)).slice(0, 8);
+  const leg1 = legendEl([{ label: "Current reorder point", kind: "key-ring" }, { label: "Recommended", color: "var(--accent)", kind: "key-dot" }]);
+  const c3 = card(view, { title: "Reorder points: current vs recommended", sub: "Recommended = lead-time demand + 95% safety stock (2025 usage) · snapshot", legend: leg1 });
+  c3.draw = el => dumbbell(el, { rows: rop.map(p => ({ label: p.name, a: p.rop, b: p.sugRop, text: `${p.rop} → ${p.sugRop}`,
+    extra: [{ value: int(p.out2025), label: "times out in 2025" }] })), fmt: int, aName: "current", bName: "recommended", labelW: Math.min(230, widthOf(el) * 0.45) });
+  c3.table = { cols: ["Part", "Current", "Recommended", "Times out (2025)"], rows: rop.map(p => [p.name, int(p.rop), int(p.sugRop), int(p.out2025)]) };
+  c3.render();
+
+  const sup = [...D.suppliers].sort((x, y) => (y.actual - y.quoted) - (x.actual - x.quoted));
+  const leg2 = legendEl([{ label: "Quoted lead time", kind: "key-ring" }, { label: "Actual average", color: "var(--accent)", kind: "key-dot" }]);
+  const c4 = card(view, { title: "Supplier lead time: quoted vs actual", sub: "Days from order to delivery · all 24 months", legend: leg2 });
+  c4.draw = el => dumbbell(el, { rows: sup.map(x => ({ label: x.name, a: x.quoted, b: x.actual, text: `${x.actual} days · ${pct(x.latePct, 0)} late`,
+    extra: [{ value: pct(x.latePct, 0), label: "delivered late" }, { value: int(x.orders), label: "orders" }] })), fmt: v => v.toFixed(0) + "d", aName: "quoted", bName: "actual", labelW: Math.min(210, widthOf(el) * 0.4), padR: 130 });
+  c4.table = { cols: ["Supplier", "Quoted (days)", "Actual (days)", "Delivered late", "Orders"], rows: sup.map(x => [x.name, int(x.quoted), num1(x.actual), pct(x.latePct), int(x.orders)]) };
+  c4.render();
+
+  const watch = inv.filter(p => !p.specialOnly && p.onHand + p.onOrder <= Math.max(p.rop, p.sugRop)).sort((x, y) => x.onHand - y.onHand || y.out2025 - x.out2025);
+  const wl = h("section", { class: "card s12" }, h("div", { class: "card-h" }, h("div", {}, h("h2", { text: "Reorder watchlist" }),
+    h("div", { class: "sub", text: "Stocked parts where on hand + on order is at or below the recommended reorder point · snapshot" }))));
+  wl.append(h("div", { class: "tbl-wrap" }, h("table", {}, h("thead", {}, h("tr", {}, ["SKU", "Part", "Supplier", "On hand", "On order", "Reorder pt", "Recommended", "Days of supply", "Status"]
+    .map((c, i) => h("th", { class: i >= 3 && i <= 7 ? "n" : "", text: c })))),
+    h("tbody", {}, watch.map(p => h("tr", {}, h("td", { class: "mono", text: p.sku }), h("td", { text: p.name }), h("td", { text: p.supplier }),
+      h("td", { class: "n", text: int(p.onHand) }), h("td", { class: "n", text: int(p.onOrder) }), h("td", { class: "n", text: int(p.rop) }),
+      h("td", { class: "n", text: int(p.sugRop) }), h("td", { class: "n", text: p.dos == null ? "–" : num1(p.dos) }),
+      h("td", {}, p.onHand === 0 ? chip("crit", p.onOrder ? "Out · on order" : "Out of stock", "alert") : chip("warn", "Reorder now", "clock"))))))));
+  view.append(wl);
+};
+
+PAGES.customers = view => {
+  const { P, idx, A, C } = page(view);
+  const cm = customers(idx), cmC = C ? customers(woIdx(P.cmp)) : null;
+  const rep = m => { let r = 0; for (const c of m.values()) if (c.visits > 1) r++; return m.size ? r / m.size * 100 : null; };
+  const k = h("div", { class: "kpis" }); view.append(k);
+  kpi(k, { label: "Customers served", value: int(cm.size), cur: cm.size, prev: cmC && cmC.size, fmtDelta: dPct });
+  kpi(k, { label: "New customers", value: int(A.nw), cur: A.nw, prev: C && C.nw, fmtDelta: dPct });
+  kpi(k, { label: "Came back 2+ times in period", value: pct(rep(cm)), cur: rep(cm), prev: cmC && rep(cmC), fmtDelta: dPts });
+  kpi(k, { label: "Customer rating", value: num2(A.csat) + " / 5", cur: A.csat, prev: C && C.csat, fmtDelta: dAbs2 });
+
+  const ch = M.channels.map((name, ci) => {
+    let n = 0, ns = 0, r = 0; for (const c of cm.values()) if (c.ch === ci) { n++; ns += c.ns; if (c.visits > 1) r++; }
+    return { label: name, value: n ? ns / n : 0, n, rep: n ? r / n * 100 : 0 };
+  }).filter(r => r.n).sort((x, y) => y.value - x.value);
+  const c1 = card(view, { title: "Sales per customer by acquisition channel", sub: "Net sales per customer served in the period" });
+  c1.draw = el => hbarChart(el, { rows: ch.map(r => ({ ...r, text: `${money0(r.value)} · ${pct(r.rep, 0)} repeat` })), fmt: money0,
+    tipRows: r => [{ value: money0(r.value), label: "per customer" }, { value: pct(r.rep), label: "visited 2+ times" }, { value: int(r.n), label: "customers" }] });
+  c1.table = { cols: ["Channel", "Sales per customer", "Repeat rate", "Customers"], rows: ch.map(r => [r.label, money0(r.value), pct(r.rep), int(r.n)]) };
+  c1.render();
+
+  const ret = D.retention;
+  const c2 = card(view, { title: "Did a late first visit cost us the customer?", sub: "New retail customers who returned within 180 days · full 24 months" });
+  c2.draw = el => hbarChart(el, { rows: ret.map(r => ({ label: r.label, value: r.pct, n: r.n })), fmt: v => pct(v, 1), max: 60,
+    barColor: r => r.label === "Finished late" ? "var(--accent)" : "var(--deemph)", tipRows: r => [{ value: pct(r.value), label: "returned" }, { value: int(r.n), label: "customers" }] });
+  c2.table = { cols: ["First visit", "Returned within 180 days", "Customers"], rows: ret.map(r => [r.label, pct(r.pct), int(r.n)]) };
+  c2.render();
+
+  const done = idx.filter(i => W.cs[i]);
+  const exp = [["All reviews", () => true], ["Finished on time", i => W.ot[i] === 1], ["Finished late", i => W.ot[i] === 0],
+    ["Waited on an ordered part", i => W.sp[i]], ["Job later came back", i => W.cb[i]]].map(([l, f]) => {
+    const sel = done.filter(f); const a = agg(sel); return { label: l, value: a.csat || 0, n: sel.length, low: a.csN ? a.cs12 / a.csN * 100 : 0 };
+  }).filter(r => r.n);
+  const c3 = card(view, { title: "What drives a bad review", sub: "Average rating (1–5) by what happened on the visit" });
+  c3.draw = el => hbarChart(el, { rows: exp.map(r => ({ ...r, text: `${num2(r.value)} · ${pct(r.low, 0)} 1–2★` })), fmt: num2, max: 5,
+    barColor: r => r.value < 3.5 ? "var(--accent)" : "var(--deemph)", tipRows: r => [{ value: num2(r.value), label: "avg rating" }, { value: pct(r.low), label: "1–2 star" }, { value: int(r.n), label: "reviews" }] });
+  c3.table = { cols: ["Experience", "Avg rating", "1–2 star share", "Reviews"], rows: exp.map(r => [r.label, num2(r.value), pct(r.low), int(r.n)]) };
+  c3.render();
+
+  const co = D.cohort;
+  const c4 = card(view, { title: "Cohort retention", sub: "Share of each quarter's new customers who visited again N quarters later · full 24 months" });
+  c4.draw = el => heatmap(el, { rows: co.map(r => r.cohort), cols: ["+1 qtr", "+2 qtr", "+3 qtr", "+4 qtr"], value: (r, c) => co[r].q[c],
+    fmt: v => v.toFixed(0) + "%", showValues: true, labelW: 64, cellH: 28, domain: [0, 40],
+    tipRows: (r, c) => [{ value: pct(co[r].q[c]), label: "came back" }, { value: int(co[r].n), label: "customers in cohort" }] });
+  c4.table = { cols: ["Cohort", "Customers", "+1 qtr", "+2 qtr", "+3 qtr", "+4 qtr"], rows: co.map(r => [r.cohort, int(r.n)].concat(r.q.map(v => v == null ? "–" : pct(v)))) };
+  c4.render();
+};
+
+/* ---------------- shell ---------------- */
+const TAB_NAMES = { overview: "Overview", floor: "Shop floor", techs: "Technicians", parts: "Parts & inventory", customers: "Customers" };
+const view = document.getElementById("view");
+function render() {
+  hideTip();
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === state.tab ? "true" : "false"));
+  const P = PERIODS[state.period];
+  const bits = [P.label];
+  if (state.tech >= 0) bits.push(M.mechs[state.tech].name);
+  if (state.cat >= 0) bits.push(M.cats[state.cat]);
+  document.getElementById("cmp").textContent = "Showing " + bits.join(" · ") + (P.cmp ? " · compared with " + P.cmp.label : "");
+  view.replaceChildren();
+  PAGES[state.tab](view);
+}
+function go(tab) {
+  state.tab = tab;
+  try { history.replaceState(null, "", "#" + tab); } catch (e) { /* sandboxed */ }
+  render();
+  document.querySelector(".tabs").scrollIntoView({ block: "nearest" });
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => go(t.dataset.tab)));
+
+const fTech = document.getElementById("f-tech"), fCat = document.getElementById("f-cat"), fPer = document.getElementById("f-period");
+fTech.append(h("option", { value: "-1", text: "All technicians" }), ...M.mechs.map((m, i) => h("option", { value: i, text: m.name })));
+fCat.append(h("option", { value: "-1", text: "All categories" }), ...M.cats.map((c, i) => [c, i]).sort().map(([c, i]) => h("option", { value: i, text: c })));
+fPer.addEventListener("change", () => { state.period = fPer.value; render(); });
+fTech.addEventListener("change", () => { state.tech = +fTech.value; render(); });
+fCat.addEventListener("change", () => { state.cat = +fCat.value; render(); });
+document.getElementById("f-reset").addEventListener("click", () => {
+  state.period = "fy25"; state.tech = -1; state.cat = -1; fPer.value = "fy25"; fTech.value = "-1"; fCat.value = "-1"; render();
+});
+
+const snapDate = new Date(D.meta.snapshot.replace(" ", "T") + "Z");
+document.getElementById("stamp").textContent = snapDate.toLocaleString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+
+const hashTab = (location.hash || "").slice(1);
+if (TAB_NAMES[hashTab]) state.tab = hashTab;
+render();
+
+let lastW = view.getBoundingClientRect().width, rt;
+new ResizeObserver(() => {
+  const w = view.getBoundingClientRect().width;
+  if (Math.abs(w - lastW) < 8) return;
+  lastW = w; clearTimeout(rt); rt = setTimeout(render, 120);
+}).observe(view);
+})();
+</script>

@@ -1,0 +1,8 @@
+mechanic_id,first_name,last_name,phone,skill_level,hourly_wage,hire_date,termination_date
+1,Marcus,Reyes,(702) 555-0110,Master Technician,44.00,2014-03-10,
+2,Dana,Whitfield,(702) 555-0111,Master Technician,42.00,2016-07-18,
+3,Luis,Navarro,(725) 555-0112,Technician,33.00,2019-02-04,
+4,Priya,Shah,(702) 555-0113,Technician,32.00,2020-09-14,
+5,Tyler,Brooks,(702) 555-0114,Technician,30.00,2021-05-03,2025-05-16
+6,Kevin,Tran,(725) 555-0115,Apprentice,22.00,2023-08-21,
+7,Jordan,Kim,(702) 555-0116,Apprentice,20.00,2025-06-02,

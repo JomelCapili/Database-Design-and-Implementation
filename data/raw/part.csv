@@ -1,0 +1,50 @@
+part_id,sku,part_name,part_category,supplier_id,unit_cost,unit_price,reorder_point,reorder_qty
+1,FL-0W20-QT,Full Synthetic Motor Oil 0W-20 (1 qt),Fluids,6,5.30,10.39,60,200
+2,FL-5W30-QT,Full Synthetic Motor Oil 5W-30 (1 qt),Fluids,6,5.30,10.39,60,200
+3,FL-ATF-QT,ATF Multi-Vehicle (1 qt),Fluids,6,6.45,13.51,24,60
+4,FL-COOL-GAL,Extended Life Coolant 50/50 (1 gal),Fluids,6,11.96,25.99,12,36
+5,FL-DOT4,DOT 4 Brake Fluid (32 oz),Fluids,6,9.78,20.79,8,24
+6,FL-R134A,R-134a Refrigerant (12 oz),Fluids,6,14.56,36.39,12,36
+7,FL-R1234YF,R-1234yf Refrigerant (8 oz),Fluids,6,39.52,93.59,8,24
+8,FL-FUELCLN,Fuel Injection Cleaning Kit,Fluids,6,18.72,46.79,6,18
+9,FI-OIL-STD,Oil Filter - Spin-On,Filters,6,4.37,12.47,40,120
+10,FI-OIL-CART,Oil Filter - Cartridge (European),Filters,6,9.88,23.91,10,30
+11,FI-AIR,Engine Air Filter,Filters,2,10.39,29.11,12,36
+12,FI-CABIN,Cabin Air Filter,Filters,2,9.12,31.19,12,36
+13,FI-FUEL,In-Line Fuel Filter,Filters,2,14.84,38.47,3,8
+14,BR-PAD-F,Ceramic Brake Pads - Front (set),Brakes,2,33.92,83.19,4,12
+15,BR-PAD-R,Ceramic Brake Pads - Rear (set),Brakes,2,29.68,72.79,6,18
+16,BR-ROT-F,Brake Rotor - Front (each),Brakes,2,43.46,98.79,2,8
+17,BR-HW-KIT,Brake Hardware Kit,Brakes,2,7.95,20.79,8,24
+18,EL-BAT-24F,AGM Battery - Group 24F,Electrical System,4,158.05,259.99,2,5
+19,EL-BAT-H6,AGM Battery - Group H6/48,Electrical System,4,174.40,280.79,2,5
+20,EL-ALT,Alternator (Remanufactured),Electrical System,4,179.85,343.19,1,2
+21,EL-STARTER,Starter Motor (Remanufactured),Electrical System,4,130.80,270.39,1,3
+22,EL-COIL,Ignition Coil,Electrical System,4,41.42,93.59,6,16
+23,EL-PLUG-IR,Iridium Spark Plug (each),Electrical System,4,9.27,20.79,24,64
+24,EL-O2,Oxygen Sensor,Electrical System,4,49.05,124.79,3,8
+25,AC-COMP,A/C Compressor Assembly,Climate Control,5,331.70,675.99,1,2
+26,AC-DRIER,A/C Receiver Drier / Accumulator,Climate Control,5,34.24,83.19,3,6
+27,AC-DYE,UV Leak Detection Dye,Climate Control,5,6.42,18.71,6,24
+28,AC-COND,A/C Condenser,Climate Control,5,155.15,332.79,1,2
+29,CL-WPUMP,Water Pump,Cooling System,5,90.95,207.99,2,4
+30,CL-RAD,Radiator,Cooling System,5,171.20,363.99,1,3
+31,CL-TSTAT,Thermostat & Gasket,Cooling System,5,23.54,57.19,3,8
+32,CL-HOSE,Radiator Hose Kit,Cooling System,5,29.96,67.59,3,6
+33,EN-TBELT,Timing Belt Kit,Engine,1,220.50,467.99,1,2
+34,EN-VCG,Valve Cover Gasket Set,Engine,1,27.30,67.59,3,6
+35,EN-SERP,Serpentine Belt,Engine,1,25.20,57.19,4,10
+36,EN-MOUNT,Engine Mount,Engine,1,57.75,135.19,2,4
+37,CH-STRUT,Strut Assembly - Front (each),Chassis,1,99.75,228.79,2,6
+38,CH-CARM,Control Arm w/ Ball Joint,Chassis,1,71.40,166.39,2,4
+39,CH-TIEROD,Outer Tie Rod End,Chassis,1,23.10,57.19,3,8
+40,CH-SWAYLNK,Sway Bar Link,Chassis,1,18.90,46.79,4,10
+41,EX-CAT,Catalytic Converter (Direct-Fit),Exhaust System,1,399.00,831.99,0,0
+42,EX-MUFF,Muffler,Exhaust System,1,89.25,197.59,1,2
+43,EX-GASKET,Exhaust Gasket Kit,Exhaust System,1,12.60,31.19,4,10
+44,FS-PUMP,Fuel Pump Module,Fuel System,1,189.00,405.59,1,2
+45,FS-INJ,Fuel Injector (each),Fuel System,1,57.75,135.19,4,8
+46,TR-FILTER,Transmission Filter & Gasket Kit,Transmission,3,25.20,62.39,3,8
+47,TR-CLUTCH,Clutch Kit,Transmission,3,252.00,519.99,0,0
+48,TR-REBUILD,Transmission Rebuild Kit,Transmission,3,441.00,935.99,0,0
+49,TR-SOLENOID,Shift Solenoid,Transmission,3,68.25,155.99,1,2

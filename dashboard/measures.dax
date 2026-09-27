@@ -1,0 +1,137 @@
+// =============================================================================
+// Service Ops - DAX measures for Power BI
+// Paste each measure into a "_Measures" table (Home > Enter data > name it _Measures).
+// Tables come from data/bi/ServiceOps_Dashboard_Data.xlsx (see POWER_BI_GUIDE.md).
+// Every definition matches sql/03_views.sql so Power BI and SQL agree.
+// =============================================================================
+
+// ---------- Date table (Modeling > New table) --------------------------------
+Date =
+ADDCOLUMNS (
+    CALENDAR ( DATE ( 2024, 1, 1 ), DATE ( 2026, 1, 31 ) ),
+    "Year", YEAR ( [Date] ),
+    "Quarter", "Q" & QUARTER ( [Date] ),
+    "Month", FORMAT ( [Date], "MMM" ),
+    "Month Num", MONTH ( [Date] ),
+    "Year Month", FORMAT ( [Date], "YYYY-MM" ),
+    "Month Start", DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 ),
+    "Weekday", FORMAT ( [Date], "ddd" ),
+    "Weekday Num", WEEKDAY ( [Date], 2 ),
+    "Season", IF ( MONTH ( [Date] ) IN { 6, 7, 8 }, "Summer (Jun-Aug)", "Rest of year" )
+)
+// Mark as date table: Table tools > Mark as date table > Date[Date]
+// Sort Date[Month] by Date[Month Num], Date[Weekday] by Date[Weekday Num]
+
+// ---------- Sales & profit ----------------------------------------------------
+Net Sales = SUM ( WorkOrders[net_sales] )
+
+Gross Profit = SUM ( WorkOrders[gross_profit] )
+
+Gross Margin % = DIVIDE ( [Gross Profit], [Net Sales] )
+
+Car Count = COUNTROWS ( WorkOrders )
+
+Customer Pay Jobs =
+CALCULATE ( COUNTROWS ( WorkOrders ), WorkOrders[job_type] = "Customer Pay" )
+
+Avg Repair Order = DIVIDE ( [Net Sales], [Customer Pay Jobs] )
+
+Parts Margin % =
+VAR rev = CALCULATE ( SUM ( WorkOrders[parts_revenue] ), WorkOrders[job_type] = "Customer Pay" )
+VAR cost = CALCULATE ( SUM ( WorkOrders[parts_cost] ), WorkOrders[job_type] = "Customer Pay" )
+RETURN DIVIDE ( rev - cost, rev )
+
+// ---------- Time intelligence (needs the Date table) ------------------------
+Net Sales PY = CALCULATE ( [Net Sales], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+
+Net Sales YoY % = DIVIDE ( [Net Sales] - [Net Sales PY], [Net Sales PY] )
+
+Net Sales YTD = TOTALYTD ( [Net Sales], 'Date'[Date] )
+
+Car Count PY = CALCULATE ( [Car Count], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+
+Car Count YoY % = DIVIDE ( [Car Count] - [Car Count PY], [Car Count PY] )
+
+Avg Repair Order PY = CALCULATE ( [Avg Repair Order], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+
+On-Time % PY = CALCULATE ( [On-Time %], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+
+On-Time Change (pts) = ( [On-Time %] - [On-Time % PY] ) * 100
+
+// ---------- Operations ---------------------------------------------------------
+On-Time % = AVERAGE ( WorkOrders[is_on_time] )          // blank for open jobs, so they're skipped
+
+Avg Turnaround (hrs) = AVERAGE ( WorkOrders[turnaround_hours] )
+
+Open Jobs = CALCULATE ( COUNTROWS ( WorkOrders ), WorkOrders[status] <> "Completed" )
+
+Stockout Jobs = CALCULATE ( COUNTROWS ( WorkOrders ), WorkOrders[had_stockout] = 1 )
+
+Stockout Rate % = DIVIDE ( [Stockout Jobs], [Car Count] )
+
+Avg Parts Wait (days) =
+CALCULATE ( AVERAGE ( WorkOrders[parts_wait_days] ), WorkOrders[had_special_order] = 1 )
+
+Avg Check-in Wait (min) = AVERAGE ( Appointments[checkin_wait_min] )
+
+No-Show Rate % =
+DIVIDE (
+    CALCULATE ( COUNTROWS ( Appointments ), Appointments[status] = "No-Show" ),
+    CALCULATE ( COUNTROWS ( Appointments ), Appointments[status] IN { "Arrived", "No-Show", "Cancelled" } )
+)
+
+// ---------- Technicians ------------------------------------------------------
+Hours Billed = SUM ( WorkOrders[hours_billed] )
+
+Hours Actual = SUM ( WorkOrders[hours_actual] )
+
+Efficiency % = DIVIDE ( [Hours Billed], [Hours Actual] )
+
+Comebacks =
+CALCULATE ( COUNTROWS ( WorkOrders ), WorkOrders[had_comeback] = 1, WorkOrders[job_type] = "Customer Pay" )
+
+Comeback Rate % = DIVIDE ( [Comebacks], [Customer Pay Jobs] )
+
+Shop Comeback Rate % = CALCULATE ( [Comeback Rate %], ALL ( Technicians ) )
+
+Comeback Flag =
+IF ( [Comeback Rate %] > 1.5 * [Shop Comeback Rate %], "Quality review",
+    IF ( [Efficiency %] < 0.85, "Coaching", "On track" ) )
+
+// ---------- Customers --------------------------------------------------------
+Avg CSAT = AVERAGE ( WorkOrders[csat_rating] )
+
+Low Ratings % =
+DIVIDE (
+    CALCULATE ( COUNTROWS ( WorkOrders ), WorkOrders[csat_rating] <= 2, NOT ISBLANK ( WorkOrders[csat_rating] ) ),
+    CALCULATE ( COUNTROWS ( WorkOrders ), NOT ISBLANK ( WorkOrders[csat_rating] ) )
+)
+
+Customers Served = DISTINCTCOUNT ( WorkOrders[customer_id] )
+
+Repeat Customers =
+COUNTROWS (
+    FILTER (
+        VALUES ( WorkOrders[customer_id] ),
+        CALCULATE ( [Customer Pay Jobs] ) >= 2
+    )
+)
+
+Repeat Rate % = DIVIDE ( [Repeat Customers], [Customers Served] )
+
+Sales per Customer = DIVIDE ( [Net Sales], [Customers Served] )
+
+// ---------- Inventory (PartsInventory is a snapshot: no date filter) ----------
+Inventory Value = SUM ( PartsInventory[inventory_value] )
+
+Parts Below Recommended =
+COUNTROWS (
+    FILTER (
+        PartsInventory,
+        PartsInventory[is_special_order_only] = 0
+            && PartsInventory[on_hand] + PartsInventory[on_order] <= PartsInventory[suggested_reorder_point]
+    )
+)
+
+Times Out of Stock = CALCULATE ( COUNTROWS ( WorkOrderParts ), WorkOrderParts[was_in_stock] = 0,
+    WorkOrderParts[is_special_order_only] = 0 )

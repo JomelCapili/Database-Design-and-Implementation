@@ -1,0 +1,6 @@
+# build outputs that are regenerated from the database
+report/report.html
+data/bi/*.csv
+__pycache__/
+*.pyc
+.DS_Store

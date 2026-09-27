@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Service Management Database – Design, Implementation & Analysis</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  @page { size: Letter; margin: 0.7in 0.75in 0.75in; }
+  @page wide { size: Letter landscape; margin: 0.5in 0.55in 0.6in; }
+  :root { --ink:#15181a; --ink2:#454c52; --muted:#737a80; --rule:#d9dcd8; --accent:#2a78d6; --accent-ink:#1c5cab; --wash:#eef4fc; --tint:#f4f5f3; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; color: var(--ink); font: 10.2pt/1.5 "IBM Plex Sans", "Segoe UI", sans-serif; }
+  h1, h2, h3, .eyebrow { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; }
+  h2 { font-size: 22pt; font-weight: 600; text-transform: uppercase; letter-spacing: .01em; margin: 0 0 4pt; line-height: 1.1; }
+  h2 .num { color: var(--accent); margin-right: 6pt; }
+  h3 { font-size: 13.5pt; font-weight: 600; margin: 16pt 0 4pt; letter-spacing: .01em; break-after: avoid; }
+  h2, h4 { break-after: avoid; }
+  h4 { font-size: 10.5pt; margin: 12pt 0 3pt; }
+  p { margin: 0 0 7pt; }
+  .lede { font-size: 10.8pt; color: var(--ink2); margin-bottom: 10pt; }
+  section.chapter { break-before: page; }
+  .wide { page: wide; break-before: page; }
+  a { color: var(--accent-ink); text-decoration: none; }
+  code, .mono { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 8.8pt; }
+  pre { font: 8.4pt/1.45 "IBM Plex Mono", Menlo, monospace; background: var(--tint); border-left: 3px solid var(--accent); padding: 7pt 9pt; margin: 6pt 0 9pt; white-space: pre-wrap; break-inside: avoid; }
+  ul, ol { margin: 0 0 8pt; padding-left: 16pt; } li { margin: 0 0 3pt; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.8pt; margin: 4pt 0 10pt; break-inside: auto; }
+  th { text-align: left; font: 600 8.6pt/1.25 "Barlow Condensed", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1.2px solid var(--ink2); padding: 4pt 5pt; }
+  td { border-bottom: 0.6px solid var(--rule); padding: 3pt 5pt; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .fig { margin: 8pt 0 10pt; break-inside: avoid; }
+  .fig img { width: 100%; border: 0.6px solid var(--rule); border-radius: 6pt; display: block; }
+  .fig.half { width: 49%; display: inline-block; vertical-align: top; }
+  .fig.half + .fig.half { margin-left: 1.5%; }
+  .cap { font-size: 8.4pt; color: var(--muted); margin-top: 3pt; }
+  .callout { background: var(--wash); border-radius: 6pt; padding: 8pt 11pt; margin: 8pt 0 10pt; break-inside: avoid; }
+  .callout b { color: var(--accent-ink); }
+  .rec { border-left: 3px solid var(--accent); padding: 2pt 0 2pt 9pt; margin: 6pt 0 10pt; break-inside: avoid; }
+  .rec .t { font-weight: 600; }
+  .find { display: grid; grid-template-columns: 64pt 1fr; gap: 2pt 10pt; padding: 5pt 0; border-top: 0.6px solid var(--rule); break-inside: avoid; }
+  .find .big { font: 600 22pt/1 "Barlow Condensed", sans-serif; color: var(--accent-ink); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1.2px solid var(--ink); border-bottom: 0.6px solid var(--rule); margin: 14pt 0 0; }
+  .stats div { padding: 9pt 8pt; border-left: 0.6px solid var(--rule); }
+  .stats div:first-child { border-left: 0; padding-left: 0; }
+  .stats b { display: block; font: 600 22pt/1 "Barlow Condensed", sans-serif; }
+  .stats span { font-size: 8.4pt; color: var(--ink2); }
+  .pill { display: inline-block; font-size: 7.6pt; font-weight: 600; padding: 1pt 5pt; border-radius: 8pt; background: var(--wash); color: var(--accent-ink); }
+  .toc { columns: 2; column-gap: 24pt; font-size: 10pt; }
+  .toc div { display: flex; gap: 8pt; padding: 3pt 0; border-bottom: 0.6px dotted var(--rule); break-inside: avoid; }
+  .toc .n { color: var(--accent); font-weight: 600; width: 16pt; }
+  .dict h4 { margin-top: 10pt; font-family: "IBM Plex Mono", monospace; font-size: 9.2pt; }
+  .dict table { font-size: 8pt; }
+  .dict td:first-child { font-family: "IBM Plex Mono", monospace; font-size: 7.9pt; white-space: nowrap; }
+  .small { font-size: 8.6pt; color: var(--ink2); }
+
+  /* cover */
+  .cover { height: 9.1in; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+  .cover .eyebrow { font-size: 12pt; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+  .cover h1 { font-size: 46pt; line-height: .95; text-transform: uppercase; margin: 10pt 0 14pt; letter-spacing: .005em; }
+  .cover .sub { font-size: 14pt; color: var(--ink2); max-width: 30em; line-height: 1.4; }
+  .cover .meta { font-size: 10pt; color: var(--ink2); line-height: 1.7; }
+  .cover .meta b { color: var(--ink); }
+  .cover .band { height: 6pt; background: linear-gradient(90deg, var(--accent) 0 40%, #eb6834 40% 60%, #1baf7a 60% 80%, #4a3aa7 80% 100%); border-radius: 3pt; }
+  .note { font-size: 8.6pt; color: var(--muted); border-top: 0.6px solid var(--rule); padding-top: 6pt; }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER ============================== -->
+<div class="cover">
+  <div>
+    <div class="band"></div>
+    <div style="height:22pt"></div>
+    <div class="eyebrow">Database design &amp; implementation · version 2</div>
+    <h1>Service Management Database</h1>
+    <div class="sub">An operational database, analysis and dashboard for an independent auto repair shop, rebuilt from my 2021 UNLV Information Systems capstone.</div>
+    <div class="stats">
+      <div><b>14</b><span>normalized tables (3NF)</span></div>
+      <div><b>70K</b><span>rows across 24 months</span></div>
+      <div><b>22</b><span>business questions answered in SQL</span></div>
+      <div><b>20</b><span>automated data-quality tests</span></div>
+      <div><b>5</b><span>dashboard pages</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="eyebrow" style="font-size:10pt;margin-bottom:6pt;color:var(--muted)">Contents</div>
+    <div class="toc" style="margin-bottom:16pt">
+    <div><span class="n">1</span>Executive summary</div>
+    <div><span class="n">2</span>Business problem</div>
+    <div><span class="n">3</span>What changed since 2021</div>
+    <div><span class="n">4</span>Business rules</div>
+    <div><span class="n">5</span>Database design (ERD)</div>
+    <div><span class="n">6</span>Normalization &amp; design decisions</div>
+    <div><span class="n">7</span>Data, simulation &amp; quality testing</div>
+    <div><span class="n">8</span>Analysis &amp; findings</div>
+    <div><span class="n">9</span>Operations dashboard</div>
+    <div><span class="n">10</span>Recommendations</div>
+    <div><span class="n">11</span>Limitations &amp; next steps</div>
+    <div><span class="n">A</span>Data dictionary</div>
+    <div><span class="n">B</span>SQL techniques index</div>
+    <div><span class="n">C</span>How to run it</div>
+  </div>
+    <div class="meta">
+      <b>Jomel Capili</b> · B.S. Business Administration, Information Systems, University of Nevada, Las Vegas<br>
+      Report date: 2026 · Data period: Jan 1, 2024 – Dec 31, 2025<br>
+      Code &amp; data: <a href="https://github.com/JomelCapili/Database-Design-and-Implementation">github.com/JomelCapili/Database-Design-and-Implementation</a><br>
+      Live dashboard: <a href="https://jomelcapili.github.io/Database-Design-and-Implementation/">jomelcapili.github.io/Database-Design-and-Implementation</a><br>
+      Tools: MySQL 8 · SQL (CTEs, window functions) · Python · HTML/JavaScript dashboard · Power BI / Tableau build kits
+    </div>
+    <p class="note" style="margin-top:14pt">All data in this report is synthetic. It was generated by a seeded Python simulation of shop operations (included in the repository) so the database could be tested at realistic scale. Every person, company, phone number and VIN is fictional.</p>
+  </div>
+</div>
+
+<!-- ============================== 1. EXECUTIVE SUMMARY ============================== -->
+<section class="chapter">
+  <h2><span class="num">1</span>Executive summary</h2>
+  <p class="lede">In 2021 I designed a service-management database for an auto repair shop as my capstone. In 2026 I audited it, found that it no longer ran and that several of its answers were wrong, and rebuilt it end to end: schema, test data, reporting layer, 22 analysis queries, data-quality tests and an interactive dashboard.</p>
+
+  <h3>The problem</h3>
+  <p>The original report named two root problems: (1) <b>jobs and appointments running late</b>, which drives customers away, and (2) <b>no tracking of parts usage</b>, which leads to stockouts. The 2021 design couldn't measure either: it linked parts to mechanics instead of jobs, and each mechanic to a single customer.</p>
+
+  <h3>What the data shows</h3>
+  <div class="find"><div class="big">11%</div><div><b>on-time rate when a stocked part ran out</b>, vs. 79.6% when every part was on the shelf. Those jobs took 101 hours on average instead of 6. Front brake rotors ran out 53 times in 2025 against a reorder point of 2; demand supports 10.</div></div>
+  <div class="find"><div class="big">30.8%</div><div><b>of new customers came back within 6 months after a late first visit</b>, vs. 47.9% when the first job finished on time. That gap is about 76 customers who didn't return, roughly $29,000 in next visits at the average repair order.</div></div>
+  <div class="find"><div class="big">7.7%</div><div><b>comeback (warranty rework) rate for one technician</b>, 2.6× the rest of the team. His comebacks cost $5,046 in unbilled labor and parts, and customers rated those original jobs 2.8 out of 5.</div></div>
+  <div class="find"><div class="big">19.7%</div><div><b>no-show rate for appointments booked 15+ days ahead</b>, vs. 3.0% for bookings made 0–2 days out.</div></div>
+  <div class="find"><div class="big">+9.9%</div><div><b>net sales growth in 2025</b> ($1.36M → $1.50M), driven by a 7.6% higher average repair order rather than more cars (+1.4%). On-time completion stayed flat at about 76%, well short of a 90% target.</div></div>
+
+  <h3>Top recommendations</h3>
+  <ol>
+    <li><b>Reset reorder points</b> on 11 parts using lead-time demand plus safety stock. It costs about <b>$3,570</b> in extra stock, 21% more than today's $16.6K shelf.</li>
+    <li><b>Build supplier ETAs into promise times</b> and hold the electrical supplier to its quoted lead time (it delivers late 94% of the time).</li>
+    <li><b>Send reminders</b> for appointments booked 8+ days out, and cap the 8:00 AM slot at two check-ins per service writer.</li>
+    <li><b>Add the comeback rate to technician reviews</b>, and keep pairing apprentices with master technicians (apprentice efficiency rose from 75% to 90%).</li>
+  </ol>
+</section>
+
+<!-- ============================== 2. PROBLEM ============================== -->
+<section class="chapter">
+  <h2><span class="num">2</span>Business problem</h2>
+  <p class="lede">The business is an independent, general-repair auto shop in the southwest Las Vegas valley with 6 technicians, about 4,000 repair orders a year and roughly $1.4 million in annual sales.</p>
+  <p>The 2021 report described a shop in trouble: appointments were delayed or double-booked, mechanics couldn't work efficiently because parts were out of stock, nobody recorded which parts were used, and the resulting delays were costing customers and revenue. The shop had no database, so it couldn't study any of these patterns.</p>
+  <p>That diagnosis still holds, but the 2021 database couldn't confirm it. Answering "are late jobs costing us customers?" requires linking an appointment to a job, the job to the parts it used and the technician who did it, and the customer to their next visit. Version 2 is designed around exactly those links.</p>
+
+  <h3>Business questions this database answers</h3>
+  <table>
+    <tr><th style="width:24%">Area</th><th>Questions</th><th class="n">Queries</th></tr>
+    <tr><td>Revenue &amp; profit</td><td>How are sales and margin trending? Which services and vehicle makes drive profit? Did 2025 beat 2024?</td><td class="n">Q1–Q4</td></tr>
+    <tr><td>Operations</td><td>What makes a job late? Are popular appointment slots overbooked? Who no-shows? What's on the shop floor right now?</td><td class="n">Q5–Q8</td></tr>
+    <tr><td>Technicians</td><td>Who is efficient, who is accurate, is the apprentice program working, and what do comebacks cost?</td><td class="n">Q9–Q11</td></tr>
+    <tr><td>Inventory</td><td>Which parts run out, what should reorder points be, do suppliers deliver on time, are parts margins holding?</td><td class="n">Q12–Q15</td></tr>
+    <tr><td>Customers</td><td>Does a late job cost us the customer? How well do we retain each cohort? Which channels bring the best customers? What drives bad reviews?</td><td class="n">Q16–Q20</td></tr>
+    <tr><td>Finance</td><td>How are customers paying, and who owes us money?</td><td class="n">Q21–Q22</td></tr>
+  </table>
+
+  <h2 style="margin-top:22pt"><span class="num">3</span>What changed since 2021</h2>
+  <p class="lede">I re-ran the original script on a standard MySQL 8.0 server on Linux. It produced <b>18 errors</b>, and several queries that did run returned wrong answers with no warning. The full audit, with the evidence for every item, is in <code>docs/FIX_LOG.md</code>.</p>
+  <table>
+    <tr><th style="width:36%">2021 issue</th><th style="width:36%">What it caused</th><th>Version 2</th></tr>
+    <tr><td>Table created as <code>Vehicle</code>, used as <code>VEHICLE</code></td><td>13 of the 18 errors on case-sensitive (Linux/macOS) MySQL</td><td>Consistent lowercase names; tested on Linux</td></tr>
+    <tr><td><code>mechanic.Customer_ID</code>: each mechanic tied to one customer</td><td>Queries only worked because every table had exactly one row per customer</td><td>Mechanic is an employee; the work order records who did the job</td></tr>
+    <tr><td>Parts linked to mechanics, not jobs</td><td>Couldn't answer "which parts went into which repair", the report's own inventory problem</td><td><code>work_order_part</code> links each part to its job</td></tr>
+    <tr><td>Revenue by make joined customer → vehicle → bill</td><td>Double counting: a test customer's $413.72 was credited to <i>both</i> of their cars</td><td>One path: invoice → work order → vehicle</td></tr>
+    <tr><td><code>year &gt; 2000 AND make='Honda' OR make='Toyota'</code></td><td>Returned 5 rows instead of 3, including 1995 and 1998 Toyotas</td><td><code>IN (...)</code> and numeric <code>model_year</code></td></tr>
+    <tr><td>"Most used part" counted rows, not units; cost ignored quantity</td><td>Wrong category ranked #1; costs understated up to 3.4×</td><td>Explicit <code>quantity × unit_cost</code></td></tr>
+    <tr><td>No CHECK constraints; status default misspelled <code>'incomeplete'</code></td><td>Any value accepted</td><td>CHECK constraints on every code and status column</td></tr>
+    <tr><td>DELETEs by time, price or phone number</td><td>6 of 7 DELETEs failed; the one that ran removed 2 unrelated appointments</td><td>Key-based changes inside transactions; history kept</td></tr>
+  </table>
+</section>
+
+<!-- ============================== 4. RULES ============================== -->
+<section style="margin-top:22pt">
+  <h2><span class="num">4</span>Business rules</h2>
+  <p class="lede">Each rule maps to a constraint in <code>sql/01_schema.sql</code> or a test in <code>sql/05_data_quality_checks.sql</code>, so the rules are enforced, not just documented.</p>
+  <table style="font-size:8.4pt">
+    <tr><th style="width:7%">ID</th><th>Rule</th><th style="width:30%">Enforced by</th></tr>
+    <tr><td>BR-1</td><td>A customer owns one or more vehicles; each vehicle belongs to exactly one customer. A VIN is unique and valid.</td><td>FK, UNIQUE, CHECK (VIN pattern); test 1, 3</td></tr>
+    <tr><td>BR-2</td><td>An appointment is for one vehicle at one time. It is Scheduled, Arrived, No-Show or Cancelled.</td><td>FK, CHECK; tests 5, 6</td></tr>
+    <tr><td>BR-3</td><td>A work order is one visit. It may come from at most one appointment; walk-ins have none.</td><td>Nullable UNIQUE FK; test 4</td></tr>
+    <tr><td>BR-4</td><td>Every work order has exactly one responsible technician, who must be employed on that date. Others may help; responsibility stays with the assigned technician (2021 rule E).</td><td>NOT NULL FK; test 8</td></tr>
+    <tr><td>BR-5</td><td>A work order contains one or more services (labor lines) and zero or more parts, each recorded with the price at the time.</td><td>Composite PKs; price columns on lines</td></tr>
+    <tr><td>BR-6</td><td>A job is Completed only when it has a completion time, and the completion time is after it was opened.</td><td>CHECK constraints</td></tr>
+    <tr><td>BR-7</td><td>A warranty comeback points to the original job, is on the same vehicle, happens after it, and is never billed.</td><td>Self-referencing FK; tests 11, 12</td></tr>
+    <tr><td>BR-8</td><td>Every part that enters stock is recorded as an opening balance, a replenishment, or a special order for one job. Stock can never go negative.</td><td>CHECK; tests 18, 20</td></tr>
+    <tr><td>BR-9</td><td>Each completed customer-pay job has exactly one invoice, dated the day it finished. Totals are calculated, never typed.</td><td>UNIQUE FK; view; tests 10, 13</td></tr>
+    <tr><td>BR-10</td><td>An invoice may be paid in one or more payments but never overpaid. Retail customers pay at pickup; fleet accounts pay on terms.</td><td>FK; tests 14, 15, 16</td></tr>
+    <tr><td>BR-11</td><td>A customer may leave at most one rating (1–5) per job, after the job is completed.</td><td>UNIQUE FK, CHECK; test 17</td></tr>
+    <tr><td>BR-12</td><td>Records with history (customers, technicians, invoices) are never deleted; their state changes instead.</td><td>FKs with RESTRICT; <code>06_maintenance_examples.sql</code></td></tr>
+  </table>
+</section>
+
+<!-- ============================== 5. ERD (landscape) ============================== -->
+<section class="wide">
+  <h2><span class="num">5</span>Database design</h2>
+  <p class="small" style="margin-bottom:6pt">Entity relationship diagram in crow's-foot notation. Colors mark the four subject areas. Source: <code>docs/erd.dot</code> (Graphviz).</p>
+  <div class="fig" style="margin:0"><img src="../docs/img/erd.png" style="border:0"></div>
+</section>
+
+<section class="chapter">
+  <h3 style="margin-top:0">Entities by subject area</h3>
+  <table>
+    <tr><th style="width:22%">Table</th><th>What one row represents</th><th class="n" style="width:12%">Rows</th></tr>
+    <!--ROW_COUNTS-->
+  </table>
+
+  <h2 style="margin-top:18pt"><span class="num">6</span>Normalization &amp; design decisions</h2>
+  <p><b>First normal form.</b> Every column holds one value. The 2021 <code>Customer_Name</code> became <code>first_name</code> and <code>last_name</code>, and <code>Appt_Date</code> plus a text <code>Appt_Time</code> ('12:21 PM') became one <code>DATETIME</code>.</p>
+  <p><b>Second normal form.</b> The two junction tables (<code>work_order_service</code> and <code>work_order_part</code>) have composite keys, and every other column depends on the whole key. Hours billed depend on <i>this service on this job</i>, not on the service alone.</p>
+  <p><b>Third normal form.</b> No column depends on another non-key column:</p>
+  <ul>
+    <li><b>No stored totals.</b> Invoice totals, stock on hand and gross profit are calculated in views (<code>v_invoice_totals</code>, <code>v_part_inventory</code>, <code>v_work_order_summary</code>). A stored total can drift from its line items; a derived one can't.</li>
+    <li><b>Customer reached through the vehicle.</b> <code>appointment</code> and <code>work_order</code> don't store <code>customer_id</code>, because the vehicle already determines the customer (a transitive dependency).</li>
+  </ul>
+  <h4>Deliberate trade-offs</h4>
+  <ul>
+    <li><b>Prices on transaction lines.</b> <code>work_order_part.unit_price</code> repeats the catalog price, but it's a fact about the sale: when the catalog price changes, old invoices must not change. Maintenance example 6 demonstrates this.</li>
+    <li><b><code>work_order.vehicle_id</code> alongside <code>appointment_id</code>.</b> About a third of jobs are walk-ins with no appointment, so the job needs its own vehicle link. Data-quality test 4 guarantees the two never disagree.</li>
+    <li><b>Surrogate integer keys</b> everywhere, with natural keys (VIN, SKU, email) kept <code>UNIQUE</code>. The 2021 text keys such as <code>'C-42 '</code> (trailing space included) are gone.</li>
+    <li><b>Current wage for labor cost.</b> Labor cost uses each technician's current wage. A wage-history table would be the next step for exact historical cost.</li>
+  </ul>
+  <h4>Reporting layer</h4>
+  <p>Seven views turn the normalized tables into analysis-ready facts. The dashboard, the Power BI/Tableau exports and the analysis queries all read from these views, so every tool uses one definition of every metric:</p>
+  <table>
+    <tr><th style="width:30%">View</th><th>Grain and purpose</th></tr>
+    <tr><td><code>v_work_order_summary</code></td><td>One row per job: revenue, cost, profit, timing, on-time flag, parts delays, comeback flag, rating. The main fact table.</td></tr>
+    <tr><td><code>v_invoice_totals</code></td><td>One row per invoice: labor, parts, discount, tax, total, paid, balance due.</td></tr>
+    <tr><td><code>v_appointment_summary</code></td><td>One row per appointment: lead time, slot, outcome, check-in wait, bookings in the same slot.</td></tr>
+    <tr><td><code>v_part_inventory</code></td><td>One row per part: on hand, on order, usage, stockouts, suggested reorder point (recursive calendar CTE for daily demand).</td></tr>
+    <tr><td><code>v_mechanic_scorecard</code></td><td>One row per technician: efficiency, on-time rate, comeback rate, rating, sales.</td></tr>
+    <tr><td><code>v_monthly_kpis</code></td><td>One row per month: the executive KPI set.</td></tr>
+    <tr><td><code>v_customer_summary</code></td><td>One row per customer: visits, lifetime sales, recency, satisfaction.</td></tr>
+  </table>
+</section>
+
+<!-- ============================== 7. DATA ============================== -->
+<section style="margin-top:22pt">
+  <h2><span class="num">7</span>Data, simulation &amp; quality testing</h2>
+  <p class="lede">The 2021 data had 50 rows per table, every relationship 1:1. That's too small to analyze and too simple to expose bugs like double counting. Version 2 is loaded with about 70,000 rows from a seeded simulation of two years of shop operations.</p>
+  <h3>How the data was generated</h3>
+  <p><code>python/generate_data.py</code> (standard library only, seed 2021) simulates the shop one business day at a time:</p>
+  <ul>
+    <li>New and returning customers arrive. Returning customers come back roughly every four months, and are <b>less likely to return if their last job was late or poorly rated</b>.</li>
+    <li>Customers book appointments (lead time 0–30 days) or walk in. Long-lead bookings no-show more often; the 7:30 and 8:00 AM slots fill first.</li>
+    <li>Each visit gets 1–3 services. Seasonal demand follows Las Vegas conditions: A/C work peaks at 2–3× in summer, batteries and cooling systems about 2×.</li>
+    <li>Each technician works one job at a time with a personal speed (efficiency) and comeback rate. Apprentices improve over time.</li>
+    <li>Parts come off a simulated shelf with reorder points and supplier lead times. An empty shelf triggers a special order and a parts wait.</li>
+    <li>Completed jobs are invoiced (Nevada taxes parts, not labor), paid (fleet accounts on 30-day terms) and sometimes rated.</li>
+  </ul>
+  <div class="callout">The patterns in Section 8 were <b>designed into the simulation</b>, for example under-stocked brake rotors and one technician with a high comeback rate. The point of the project is not to discover them; it's to show that the database, queries and dashboard <b>can surface and quantify</b> problems like these from raw transactions, which is the job a data analyst does with real data.</div>
+  <h3>Data-quality test suite</h3>
+  <p>Constraints block most bad data at insert time. <code>sql/05_data_quality_checks.sql</code> covers the rules that span rows and tables. It runs 20 checks and returns one PASS/FAIL row per check. <b>All 20 pass.</b></p>
+  <table>
+    <tr><th style="width:6%">#</th><th>Check</th><th style="width:34%">Technique</th></tr>
+    <tr><td>3</td><td>Every VIN's check digit (position 9) is valid</td><td>Recursive CTE over 17 positions, transliteration, weighted MOD 11</td></tr>
+    <tr><td>9</td><td>Odometer never goes backwards for a vehicle</td><td><code>LAG()</code> over each vehicle's visits</td></tr>
+    <tr><td>18</td><td>Every out-of-stock part line has a matching special order, and vice versa</td><td>Correlated <code>EXISTS</code></td></tr>
+    <tr><td>20</td><td>Stock on hand never goes negative</td><td>Running <code>SUM() OVER</code> across a receipts/usage ledger</td></tr>
+    <tr><td>1–19</td><td>Plus orphan, duplicate, date-order, invoice, payment and status-consistency checks</td><td>Anti-joins, <code>GROUP BY … HAVING</code></td></tr>
+  </table>
+  <p><b>The suite caught real bugs.</b> On its first run, 3 checks failed. One was a genuine error in my generator: a returning customer could book their next visit before their previous visit had happened. The other two were edge cases in the checks themselves: an appointment at exactly the snapshot time, and two cars finished at 11:30 AM on the snapshot day and not yet picked up. I fixed the generator, tightened the two checks, and documented each case.</p>
+</section>
+
+<!-- ============================== 8. ANALYSIS ============================== -->
+<section class="chapter">
+  <h2><span class="num">8</span>Analysis &amp; findings</h2>
+  <p class="lede">Each finding below names the query that produced it (<code>sql/04_analysis_queries.sql</code>). Charts come from the operations dashboard with the full 24 months selected.</p>
+
+  <h3>8.1 Business performance: sales grew on bigger tickets, not more cars</h3>
+  <table>
+    <tr><th>KPI (Q2)</th><th class="n">2024</th><th class="n">2025</th><th class="n">Change</th></tr>
+    <tr><td>Car count (work orders)</td><td class="n">3,941</td><td class="n">3,998</td><td class="n">+1.4%</td></tr>
+    <tr><td>Net sales</td><td class="n">$1,362,548</td><td class="n">$1,497,116</td><td class="n">+9.9%</td></tr>
+    <tr><td>Average repair order</td><td class="n">$359.70</td><td class="n">$386.95</td><td class="n">+7.6%</td></tr>
+    <tr><td>Gross margin</td><td class="n">65.6%</td><td class="n">66.6%</td><td class="n">+1.0 pts</td></tr>
+    <tr><td>Parts margin</td><td class="n">53.0%</td><td class="n">52.1%</td><td class="n">−0.8 pts</td></tr>
+    <tr><td>On-time completion</td><td class="n">76.8%</td><td class="n">76.4%</td><td class="n">−0.3 pts</td></tr>
+    <tr><td>Average rating (1–5)</td><td class="n">4.19</td><td class="n">4.17</td><td class="n">−0.02</td></tr>
+  </table>
+  <div class="fig"><img src="img/sales_by_month.png"></div>
+  <p>Growth came from a higher average ticket, helped by a labor-rate increase from $140 to $150 per hour, while car count was nearly flat. Sales peak every summer (June–August 2025 averaged $150K a month vs. $116K the rest of the year) because Las Vegas heat drives A/C, battery and cooling repairs (Q15: A/C work runs at 2.5× its average month in July and 0.15× in December). Brakes are the largest category at 18% of sales and the most profitable overall (Q3).</p>
+  <div class="grid2">
+    <div class="fig"><img src="img/sales_by_category.png"></div>
+    <div class="fig"><img src="img/top_makes.png"></div>
+  </div>
+  <p class="small">Q4 is the corrected version of 2021 query 11. European makes (BMW, Mercedes-Benz, Volkswagen, Audi) average 7–17% above the shop's typical ticket because their flat-rate labor times are longer.</p>
+</section>
+
+<section style="margin-top:14pt">
+  <h3>8.2 Why jobs run late: parts, not people</h3>
+  <p>Only about 76% of jobs finish by the time promised at drop-off. Q5 splits on-time performance by every factor the database records:</p>
+  <div class="grid2">
+    <div class="fig"><img src="img/late_drivers.png"></div>
+    <div class="fig"><img src="img/on_time_by_month.png"></div>
+  </div>
+  <p><b>Parts availability dominates.</b> When every part was on the shelf, 79.6% of jobs finished on time. When a normally stocked part had run out, only 11.0% did, and turnaround jumped from 6 hours to 101. Technician skill matters much less (apprentices 70%, master technicians 82%). Summer's lower on-time rate (73.5%) is partly summer stockouts and partly workload: even with every part on the shelf, summer jobs were on time 77.5% of the time vs. 80.4% the rest of the year. Walk-ins and appointments perform about the same (75% vs. 77%).</p>
+  <div class="callout">Parts delays touched only <b>about 5% of jobs</b> but account for <b>17% of all late jobs</b>. They're the most concentrated, and the most fixable, cause of the shop's core 2021 problem.</div>
+
+  <h3>8.3 Parts stockouts: the reorder points are simply too low</h3>
+  <div class="grid2">
+    <div class="fig"><img src="img/stockouts_by_month.png"></div>
+    <div class="fig"><img src="img/parts_out.png"></div>
+  </div>
+  <p>Stockouts cluster in two places: <b>front brake rotors</b>, the shop's highest-volume repair part, and <b>summer parts</b> (AGM batteries, A/C compressors, leak-detection dye) whose demand doubles in the heat while reorder points stay the same. Q12 compares each part's reorder point with a recommended one calculated in <code>v_part_inventory</code>:</p>
+  <pre>recommended reorder point = avg daily use × avg actual lead time
+                          + 1.65 × σ(daily use) × √(lead time)      -- 95% service level</pre>
+  <div class="grid2">
+    <div class="fig"><img src="img/reorder_points.png"></div>
+    <div class="fig"><img src="img/supplier_lead.png"></div>
+  </div>
+  <p>Front rotors need a reorder point of <b>10, not 2</b>; the Group H6 battery <b>7, not 2</b>; alternators <b>4, not 1</b>. Raising all 11 affected parts costs about <b>$3,570</b> in extra stock, set against 229 jobs over two years that waited an average of 4.1 days for parts and rated the shop 2.5 out of 5.</p>
+  <p><b>Suppliers make it worse (Q13).</b> Summit Electrical Components quotes 3 days and averages 4.9; 94% of its orders arrive late. Because the reorder-point formula uses <i>actual</i> lead times, it already compensates, but the shop should hold Summit to its quote or move volume to another supplier.</p>
+</section>
+
+<section style="margin-top:14pt">
+  <h3>8.4 Appointments: long-lead bookings no-show, and 8 AM is overbooked</h3>
+  <div class="grid2">
+    <div class="fig"><img src="img/no_show_lead.png"></div>
+    <div class="fig"><img src="img/checkin_heatmap.png"></div>
+  </div>
+  <p><b>No-shows rise with booking lead time (Q7):</b> 3.0% for appointments made 0–2 days out, 6.6% at 3–7 days, 13.9% at 8–14 days and 19.7% at 15+ days. A reminder text for anything booked a week or more ahead targets the 21% of bookings that produce nearly half (48%) of all no-shows.</p>
+  <p><b>The 8:00 AM slot is the 2021 "clashing appointments" problem (Q6).</b> It averages 2.5 bookings per slot, 45% of its customers arrive into an overbooked slot, and 15% wait more than 15 minutes to be checked in, vs. under 2% after noon. With two service writers, the fix is to cap each half-hour slot at two check-ins and move the overflow to 8:30–9:30.</p>
+
+  <h3>8.5 Technicians: one quality outlier, and a working apprentice program</h3>
+  <div class="fig"><img src="img/tech_scorecard.png"></div>
+  <div class="grid2">
+    <div class="fig"><img src="img/efficiency_levels.png"></div>
+    <div class="fig"><img src="img/comebacks.png"></div>
+  </div>
+  <p><b>Efficiency</b> (flat-rate hours billed ÷ hours clocked) ranges from 114% for the senior master technician to 73% for the newest apprentice (Q9). <b>Quality is a separate question.</b> Tyler Brooks was an average-speed technician (91%) but had a <b>7.7% comeback rate</b>, 2.6× everyone else. His 70 comebacks cost $5,046 in unbilled rework (Q11, a self-join from each rework to its original job), and customers rated those original jobs 2.8 out of 5. He left in May 2025.</p>
+  <p><b>The apprentice program works (Q10).</b> Kevin Tran's efficiency rose every quarter, from 74.6% in Q1 2024 to 89.5% in Q4 2025 (a <code>LAG()</code> window over quarterly results). Jordan Kim, hired in June 2025, is on the same curve (69% → 79% in two quarters).</p>
+</section>
+
+<section style="margin-top:14pt">
+  <h3>8.6 Customers: a late first visit costs a third of repeat business</h3>
+  <div class="grid2">
+    <div class="fig"><img src="img/late_churn.png"></div>
+    <div class="fig"><img src="img/csat_drivers.png"></div>
+  </div>
+  <p><b>This is the central finding (Q16).</b> Among new retail customers who had six months to come back, 47.9% returned after an on-time first visit but only <b>30.8% after a late one</b>. It uses <code>ROW_NUMBER()</code> to find each customer's first visit and <code>LEAD()</code> to find their next one. Applied to the 445 customers whose first job was late, the gap is about 76 lost returning customers, or roughly $29,000 in next visits at the 2025 average repair order of $387, before counting lifetime value. Ratings tell the same story (Q20): 4.47 when on time, 3.21 when late, and 2.75 after waiting on an ordered part, with 43% of those reviews at 1–2 stars.</p>
+  <div class="grid2">
+    <div class="fig"><img src="img/channels.png"></div>
+    <div class="fig"><img src="img/cohort.png"></div>
+  </div>
+  <p><b>Referrals bring the best retail customers (Q18):</b> a 56.6% repeat rate and $798 in sales per customer, vs. 38.1% and $573 from social media. Fleet accounts are the most valuable of all ($1,477 per account, 81% repeat). The cohort view (Q17) shows about a third of each quarter's new customers returning the following quarter, and about 10–16% still visiting a year later. RFM segmentation (Q19, <code>NTILE(5)</code>) finds 17% of customers ("Champions") produce 36% of sales, and 430 "at risk" high-value customers average 17 months since their last visit, a ready-made win-back list.</p>
+  <p><b>Finance (Q21–Q22).</b> Mobile-wallet payments grew from 7.6% to 12.8% of transactions while cash fell from 11.7% to 8.4%. Accounts receivable is small and current: $13,260 owed by fleet accounts, 85% of it under 30 days old.</p>
+</section>
+
+<!-- ============================== 9. DASHBOARD ============================== -->
+<section class="chapter">
+  <h2><span class="num">9</span>Operations dashboard</h2>
+  <p class="lede">The dashboard turns the reporting views into a tool a shop manager could use every morning. It is a single self-contained web page (<code>docs/index.html</code>), published free with GitHub Pages, with no server or login.</p>
+  <div class="fig"><img src="img/dashboard_top.png"></div>
+  <table>
+    <tr><th style="width:20%">Page</th><th>Answers</th></tr>
+    <tr><td>Overview</td><td>7 KPIs with year-over-year change and sparklines, headline findings, monthly sales, on-time trend vs. 90% target, sales by category and by vehicle make</td></tr>
+    <tr><td>Shop floor</td><td>Bay board of every open repair order with promise status and parts in transit, what makes a job late, check-in wait by slot (heatmap), no-shows by lead time, turnaround distribution</td></tr>
+    <tr><td>Technicians</td><td>Scorecard with efficiency meters and action flags, efficiency by skill level over time, comeback rate vs. shop average</td></tr>
+    <tr><td>Parts &amp; inventory</td><td>Stockouts by month, parts that ran out most, current vs. recommended reorder points, supplier lead times, reorder watchlist</td></tr>
+    <tr><td>Customers</td><td>Customers served and repeat rate, value by acquisition channel, late-visit churn, rating drivers, cohort retention</td></tr>
+  </table>
+  <p>Global filters (date range with year-over-year comparison, technician, service category) re-scope every chart. Every chart has hover tooltips and a table view, and the page supports light and dark mode and phone screens. <code>dashboard/POWER_BI_GUIDE.md</code> and <code>dashboard/TABLEAU_GUIDE.md</code> rebuild the same dashboard in Power BI (with every DAX measure in <code>measures.dax</code> and a matching theme file) and in Tableau Public, from the exported workbook <code>data/bi/ServiceOps_Dashboard_Data.xlsx</code>.</p>
+</section>
+
+<!-- ============================== 10. RECOMMENDATIONS ============================== -->
+<section style="margin-top:22pt">
+  <h2><span class="num">10</span>Recommendations</h2>
+  <p class="lede">Ranked by expected impact on the two original problems. Each has a metric on the dashboard so the shop can tell whether it worked.</p>
+  <table>
+    <tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:34%">Evidence</th><th>Track</th></tr>
+    <tr><td>1</td><td><b>Raise reorder points on 11 parts</b> to the recommended levels; use higher summer reorder points (June–August) for batteries and A/C parts.</td><td>Stockout jobs: 11% on-time, 101-hour turnaround, 2.5★. Cost: ~$3,570 in added stock.</td><td>Jobs hit by a stockout; reorder watchlist</td></tr>
+    <tr><td>2</td><td><b>Promise times that include parts ETAs</b>, plus a text update when a job will be late.</td><td>Late first visit: 30.8% return vs. 47.9% (≈76 lost customers, ≈$29K).</td><td>On-time %; 6-month return rate</td></tr>
+    <tr><td>3</td><td><b>Supplier accountability</b>: hold Summit Electrical to its 3-day quote or shift volume.</td><td>94% of Summit orders late; average 4.9 days.</td><td>Supplier late %; actual lead days</td></tr>
+    <tr><td>4</td><td><b>Appointment reminders</b> for bookings 8+ days out; <b>cap 8:00 AM at two check-ins</b> per writer.</td><td>No-shows 13.9–19.7% vs. 3.0%; 15% of 8 AM customers wait 15+ min.</td><td>No-show rate; check-in heatmap</td></tr>
+    <tr><td>5</td><td><b>Add comeback rate to technician reviews</b>; flag anyone over 1.5× the shop rate for a quality review.</td><td>One technician at 7.7% (2.6× peers) cost $5,046 in rework.</td><td>Comeback rate by technician</td></tr>
+    <tr><td>6</td><td><b>Keep pairing apprentices with master technicians</b> and give apprentices longer promise buffers.</td><td>Apprentice efficiency 75% → 90% in 8 quarters; apprentice on-time 70%.</td><td>Efficiency by skill level</td></tr>
+    <tr><td>7</td><td><b>Fund a referral program</b> and a win-back campaign for "at risk" high-value customers.</td><td>Referral customers: 57% repeat, $798 each; 430 lapsed high-value customers.</td><td>Sales per customer by channel; RFM segments</td></tr>
+    <tr><td>8</td><td><b>Re-price electrical parts</b> to protect margin.</td><td>Electrical parts margin fell 2.8 pts after a 9% supplier cost increase (Q14).</td><td>Parts margin by category</td></tr>
+  </table>
+
+  <h2 style="margin-top:22pt"><span class="num">11</span>Limitations &amp; next steps</h2>
+  <ul>
+    <li><b>Synthetic data.</b> The patterns are realistic but were designed into the simulation. The same schema, queries and dashboard would run unchanged on a real shop's data.</li>
+    <li><b>Simplifications.</b> One location, current wages for labor cost, and no per-line time tracking (clocked hours are recorded per service, but technicians aren't split within a job).</li>
+    <li><b>Next steps.</b> Add wage history and a promise-time audit trail; schedule a nightly refresh from the shop system (Python + cron, or dbt on a cloud warehouse); forecast weekly parts demand to set seasonal reorder points automatically; build a churn model that predicts which customers won't return.</li>
+  </ul>
+</section>
+
+<!-- ============================== APPENDICES ============================== -->
+<section class="chapter dict">
+  <h2><span class="num">A</span>Data dictionary</h2>
+  <p class="small">Generated from MySQL's <code>information_schema</code>, so it always matches the deployed schema. PK = primary key, FK = foreign key, UQ = unique.</p>
+  <!--DATA_DICTIONARY-->
+</section>
+
+<section class="chapter">
+  <h2><span class="num">B</span>SQL techniques index</h2>
+  <table>
+    <tr><th style="width:36%">Technique</th><th>Where</th></tr>
+    <tr><td>Common table expressions (CTEs)</td><td>All 7 views; Q1–Q3, Q10, Q12, Q14–Q17, Q19, Q21; DQ suite</td></tr>
+    <tr><td>Recursive CTE</td><td><code>v_part_inventory</code> (business-day calendar for demand variability); DQ check 3 (VIN positions)</td></tr>
+    <tr><td>Window functions: <code>LAG</code>, <code>LEAD</code></td><td>Q1 (month-over-month and year-over-year), Q10 (quarter-over-quarter), Q16 (next visit), DQ check 9</td></tr>
+    <tr><td>Window functions: <code>ROW_NUMBER</code>, <code>RANK</code>, <code>NTILE</code></td><td><code>v_work_order_summary</code> (primary service), Q3, Q9, Q16, Q19 (RFM quintiles)</td></tr>
+    <tr><td>Window aggregates: <code>SUM/AVG/COUNT … OVER</code></td><td>Q1 (YTD), Q3–Q4 (share of total), Q9 (vs. shop average), Q15, Q19, <code>v_appointment_summary</code>, DQ check 20 (running balance)</td></tr>
+    <tr><td>Conditional aggregation (pivots)</td><td>Q2, Q7, Q14, Q15 (12-month pivot), Q17 (cohort matrix), Q21</td></tr>
+    <tr><td>Self-join</td><td>Q11 (rework → original job); DQ check 12</td></tr>
+    <tr><td>Correlated subqueries, <code>EXISTS</code> / <code>NOT EXISTS</code></td><td>Q8; DQ checks 1, 11, 18, 19; maintenance examples 10–11</td></tr>
+    <tr><td>Statistics in SQL</td><td><code>STDDEV_SAMP</code> and <code>SQRT</code> for safety stock in <code>v_part_inventory</code></td></tr>
+    <tr><td>Transactions</td><td><code>06_maintenance_examples.sql</code>: 11 safe UPDATE/DELETE patterns, each ending in ROLLBACK</td></tr>
+    <tr><td>Constraints</td><td>14 PKs, 16 FKs (including a self-reference), 8 UNIQUEs, 30 CHECKs (some with <code>REGEXP_LIKE</code>)</td></tr>
+  </table>
+
+  <h2 style="margin-top:22pt"><span class="num">C</span>How to run it</h2>
+  <pre># 1. Build the database (MySQL 8.0+). Runs in about 10 seconds.
+mysql -u root -p &lt; sql/01_schema.sql
+mysql -u root -p &lt; sql/02_seed_data.sql
+mysql -u root -p &lt; sql/03_views.sql
+
+# 2. Ask questions and test the data
+mysql -u root -p -t &lt; sql/04_analysis_queries.sql
+mysql -u root -p -t &lt; sql/05_data_quality_checks.sql     # expect 20 x PASS
+mysql -u root -p -t &lt; sql/06_maintenance_examples.sql    # rolls itself back
+
+# 3. Optional: regenerate data, export for BI tools, rebuild the dashboard
+python3 python/generate_data.py                 # standard library only
+pip install pymysql openpyxl
+python3 python/export_bi_data.py                # data/bi/*.csv + .xlsx
+python3 python/build_dashboard.py               # docs/index.html</pre>
+  <p class="small">MySQL Workbench users: open each file with <i>File → Open SQL Script</i> and run it with the lightning-bolt button, in the order above.</p>
+</section>
+
+</body>
+</html>
