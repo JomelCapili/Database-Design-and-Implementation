@@ -1,27 +1,43 @@
-# Fix log: auditing my 2021 SQL
+# Fix log: what I found when I revisited my 2021 SQL
 
-In 2026 I re-ran my 2021 term-project script for IS 475, Database Design and Implementation
-(`legacy/service_management_2021.sql`), on a clean
-**MySQL 8.0 server on Linux** and reviewed every table and query. This log records what I found,
-how I proved it, and how version 2 fixes it.
+In 2026 I went back to my 2021 term project for IS 475, Database Design and Implementation
+([`legacy/service_management_2021.sql`](../legacy/service_management_2021.sql)), re-ran it, and reviewed
+every table and query. This log records what I found, how I checked it, and how version 2 fixes it.
 
-**Summary:** the script throws **18 errors** on a standard Linux MySQL install, and several
-queries that *do* run return wrong answers without any error. The root cause of most logic
-bugs is a design decision: mechanics were linked to customers instead of to jobs, and parts
-were linked to mechanics instead of to jobs.
+## First: it worked in 2021
+
+The class used MySQL Workbench on Windows, and on Windows the script runs. I confirmed it by running the
+original file on MySQL 8.0 with Windows' table-name setting (`lower_case_table_names = 1`):
+
+- All 11 tables, all 550 rows, all 15 queries and every UPDATE ran **with no errors**. The query
+  screenshots in the 2021 report came from exactly this.
+- The only errors were **6 of the 7 DELETE examples**. The file marks them as demonstrations that
+  weren't part of the query results. Five of them are the database's foreign keys doing their job:
+  MySQL refuses to delete a customer, bill or vehicle that other rows still point to.
+
+Two things show up once the script leaves that setup:
+
+- **On a Linux MySQL server** (what most companies run), 12 more statements fail. The table is created as
+  `Vehicle` but used as `VEHICLE` and `vehicle`. Windows ignores capitalization in table names; Linux
+  doesn't. (Section A.)
+- **More importantly, some queries ran cleanly and gave the wrong answer.** A few returned the wrong rows
+  or double-counted money, and nothing warned about it, because 50 tidy rows per table were too few to
+  expose the problems. Most of these trace back to one design choice: parts were linked to mechanics, and
+  mechanics to customers, instead of both being linked to the job. (Sections B and C.)
 
 ---
 
-## A. Errors (the script stops or a statement fails)
+## A. Statements that fail
 
 | # | Problem | Evidence | v2 fix |
 |---|---|---|---|
-| A1 | Table created as `Vehicle` but used as `VEHICLE` and `vehicle`. MySQL on Linux/macOS treats table names as case-sensitive, so the insert, the `vehicle_receives` table, 8 queries and 2 DML statements all fail (13 errors from one typo). It only worked in 2021 because Windows MySQL ignores case. | `ERROR 1146: Table 'service_management.VEHICLE' doesn't exist` | All identifiers lowercase `snake_case`; script tested on Linux MySQL 8.0.46 |
-| A2 | `DELETE FROM customer WHERE customer_id = 'C-06'` | `ERROR 1451` foreign key from `appointment` | Customers with history are never deleted; `06_maintenance_examples.sql` #10 shows the guarded pattern |
-| A3 | `DELETE FROM mechanic WHERE mechanic_id = 'M-043'` | `ERROR 1451` from `mechanic_performs` | Record `termination_date` instead (#7) |
-| A4 | `DELETE FROM service WHERE service_date = ...` | `ERROR 1054: Unknown column 'service_date'` | n/a (column never existed) |
-| A5 | `DELETE FROM bill WHERE total_bill = '40.41'` | `ERROR 1451` from `service_cost` | Delete by primary key, leaf tables only (#9) |
-| A6 | `DELETE FROM part WHERE purchase_price = "P-0021"` compares a **price** to an **ID** | `ERROR 1292: Truncated incorrect DECIMAL value` | Delete by `part_id` with `NOT EXISTS` guards (#11) |
+| A1 | **Linux only.** Table created as `Vehicle` but used as `VEHICLE` and `vehicle`. On Linux the insert, the `vehicle_receives` table, 8 queries and 1 UPDATE fail (12 errors from one inconsistency). On Windows they all run | `ERROR 1146: Table 'service_management.VEHICLE' doesn't exist` | Every name is lowercase `snake_case`; v2 is tested on Linux MySQL 8.0 |
+| A2 | DELETE demo: `DELETE FROM customer WHERE customer_id = 'C-06'` | `ERROR 1451`: the customer still has an appointment | Customers with history are kept; `06_maintenance_examples.sql` #10 shows a guarded delete |
+| A3 | DELETE demo: `DELETE FROM mechanic WHERE mechanic_id = 'M-043'` | `ERROR 1451`: the mechanic still has jobs | Record a `termination_date` instead (#7) |
+| A4 | DELETE demo: `DELETE FROM service WHERE service_date = ...` | `ERROR 1054: Unknown column 'service_date'` (the column is `start_date`) | n/a |
+| A5 | DELETE demo: `DELETE FROM bill WHERE total_bill = '40.41'` | `ERROR 1451`: the bill is still linked to a service | Delete by primary key, starting from the rows nothing else depends on (#9) |
+| A6 | DELETE demo: `DELETE FROM vehicle WHERE make = 'Mazda' AND model = 'Navajo'` | `ERROR 1451`: the vehicle still has a service (on Linux it fails earlier, per A1) | Same pattern as A5 |
+| A7 | DELETE demo: `DELETE FROM part WHERE purchase_price = "P-0021"` compares a **price** to an **ID** | `ERROR 1292: Truncated incorrect DECIMAL value` | Delete by `part_id`, only if the part was never used (#11) |
 
 ## B. Silent logic bugs (runs fine, wrong answer)
 
@@ -73,9 +89,14 @@ overlap with problems the 2026 audit found on its own (B6, B7, C3, C6), and v2 f
 
 ---
 
-## How to reproduce
+## How to check this yourself
+
+**On Windows (MySQL Workbench):** open `legacy/service_management_2021.sql` and run it. Everything runs
+except the DELETE examples at the end (A2 to A7). To see the silent bugs, run the Honda/Toyota query
+from B1 and count the rows.
+
+**On Linux or macOS:**
 
 ```bash
-# Linux / macOS, MySQL 8
-mysql -u root -p --force -vvv < legacy/service_management_2021.sql 2>&1 | grep ERROR
+mysql -u root -p --force < legacy/service_management_2021.sql 2>&1 | grep ERROR    # 18 errors: A1 plus the DELETE demos
 ```

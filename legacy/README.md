@@ -25,12 +25,10 @@ is as written in 2021.
 
 ## What happened to it
 
-In 2026 I ran this script on a clean MySQL 8 server. It produced 18 errors, and several queries that did run
-returned wrong answers. [`docs/FIX_LOG.md`](../docs/FIX_LOG.md) lists every problem with evidence, including
-the ten design issues my professor flagged when it was graded, and how version 2 fixes each one.
-
-To see the errors yourself:
-
-```bash
-mysql -u root -p --force -vvv < legacy/service_management_2021.sql 2>&1 | grep ERROR
-```
+I built and ran this in MySQL Workbench on Windows in 2021, and it worked: every table, insert, query and
+update runs, and only the DELETE examples at the end are blocked (mostly by foreign keys protecting
+related rows). When I revisited it in 2026, I found queries that ran cleanly but returned wrong answers,
+a design that couldn't show which parts went into which job, and a table-name capitalization
+inconsistency that breaks 12 statements on a Linux server. [`docs/FIX_LOG.md`](../docs/FIX_LOG.md) covers
+every item, including the ten design issues my professor flagged when it was graded, and how version 2
+fixes each one.

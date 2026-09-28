@@ -157,17 +157,17 @@
   </table>
 
   <h2 style="margin-top:22pt"><span class="num">3</span>What changed since 2021</h2>
-  <p class="lede">I re-ran the original script on a standard MySQL 8.0 server on Linux. It produced <b>18 errors</b>, and several queries that did run returned wrong answers with no warning. The full audit, with the evidence for every item, is in <code>docs/FIX_LOG.md</code>.</p>
+  <p class="lede">The script ran fine in 2021 on Windows, apart from the demonstration DELETEs. The real problems were quieter: several queries returned wrong answers with no warning, and on Linux a table-name inconsistency broke 12 statements. Full audit: <code>docs/FIX_LOG.md</code>.</p>
   <table>
     <tr><th style="width:36%">2021 issue</th><th style="width:36%">What it caused</th><th>Version 2</th></tr>
-    <tr><td>Table created as <code>Vehicle</code>, used as <code>VEHICLE</code></td><td>13 of the 18 errors on case-sensitive (Linux/macOS) MySQL</td><td>Consistent lowercase names; tested on Linux</td></tr>
+    <tr><td>Table created as <code>Vehicle</code>, used as <code>VEHICLE</code></td><td>Ran on Windows, which ignores case; 12 statements fail on Linux, which doesn't</td><td>Consistent lowercase names; tested on Linux</td></tr>
     <tr><td><code>mechanic.Customer_ID</code>: each mechanic tied to one customer</td><td>Queries only worked because every table had exactly one row per customer</td><td>Mechanic is an employee; the work order records who did the job</td></tr>
     <tr><td>Parts linked to mechanics, not jobs</td><td>Couldn't answer "which parts went into which repair", the report's own inventory problem</td><td><code>work_order_part</code> links each part to its job</td></tr>
     <tr><td>Revenue by make joined customer → vehicle → bill</td><td>Double counting: a test customer's $413.72 was credited to <i>both</i> of their cars</td><td>One path: invoice → work order → vehicle</td></tr>
     <tr><td><code>year &gt; 2000 AND make='Honda' OR make='Toyota'</code></td><td>Returned 5 rows instead of 3, including 1995 and 1998 Toyotas</td><td><code>IN (...)</code> and numeric <code>model_year</code></td></tr>
     <tr><td>"Most used part" counted rows, not units; cost ignored quantity</td><td>Wrong category ranked #1; costs understated up to 3.4×</td><td>Explicit <code>quantity × unit_cost</code></td></tr>
     <tr><td>No CHECK constraints; status default misspelled <code>'incomeplete'</code></td><td>Any value accepted</td><td>CHECK constraints on every code and status column</td></tr>
-    <tr><td>DELETEs by time, price or phone number</td><td>6 of 7 DELETEs failed; the one that ran removed 2 unrelated appointments</td><td>Key-based changes inside transactions; history kept</td></tr>
+    <tr><td>DELETEs by time, price or phone number</td><td>6 of 7 demo DELETEs blocked, mostly by foreign keys; one removed 2 unrelated appointments</td><td>Key-based changes inside transactions; history kept</td></tr>
   </table>
 </section>
 
