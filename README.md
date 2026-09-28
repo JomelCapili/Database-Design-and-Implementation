@@ -71,7 +71,7 @@ The original proposal, slides, report and SQL are in [`legacy/`](legacy/), so yo
 
 | Finding | Evidence | Recommendation |
 |---|---|---|
-| **Running out of parts is the biggest fixable cause of late jobs** | Jobs where a stocked part ran out finished on time **11%** of the time, vs. **80%** when parts were on the shelf. Front brake rotors ran out 53 times in 2025. | Raise the reorder point on 11 parts, about **$3,600** of extra stock |
+| **Running out of parts does the most damage per job, and it's the cheapest fix** | Jobs where a stocked part ran out finished on time **11%** of the time, vs. **80%** when parts were on the shelf. Parts problems touched 5% of jobs but caused 17% of late ones. | Raise the reorder point on 11 parts, about **$3,600** of extra stock |
 | **A late first visit loses customers** | New customers came back within 6 months **31%** of the time after a late first visit, vs. **48%** after an on-time one | Build supplier delivery times into promised times; text customers when a job will be late |
 | **One technician's work came back far more often** | 7.7% of that technician's jobs needed warranty rework, 2.6× the rest of the team, costing $5,046 | Add rework rate to technician reviews |
 | **Appointments booked far ahead get missed** | 19.7% no-shows when booked 15+ days out, vs. 3.0% when booked 0–2 days out | Send reminder texts for bookings made 8+ days ahead |
