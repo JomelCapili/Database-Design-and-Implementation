@@ -1,6 +1,7 @@
 # Fix log: auditing my 2021 SQL
 
-In 2026 I re-ran my 2021 capstone script (`legacy/service_management_2021.sql`) on a clean
+In 2026 I re-ran my 2021 term-project script for IS 475, Database Design and Implementation
+(`legacy/service_management_2021.sql`), on a clean
 **MySQL 8.0 server on Linux** and reviewed every table and query. This log records what I found,
 how I proved it, and how version 2 fixes it.
 
@@ -54,6 +55,21 @@ were linked to mechanics instead of to jobs.
 | C11 | `UPDATE vehicle SET year = '2007'` on a car that is already 2007 | No-op removed |
 | C12 | Query 3 duplicates query 2 | Removed |
 | C13 | Only 50 rows per table, all 1:1 | ~70,000 rows with realistic many-to-many patterns, so the queries are tested against real fan-out |
+
+## D. 2021 instructor feedback
+
+When the project was graded in December 2021, my professor flagged ten design issues. Seven of them
+overlap with problems the 2026 audit found on its own (B6, B7, C3, C6), and v2 fixes all ten.
+
+| # | 2021 feedback | v2 fix |
+|---|---|---|
+| D1 | MECHANIC doesn't need `customer_ID`; mechanics and customers aren't related | Removed. The job records who did the work (`work_order.mechanic_id`). See B6 |
+| D2 | The CUSTOMER–VEHICLE arrow in the logical schema is reversed | `vehicle.customer_id` references `customer`: the foreign key sits on the "many" side. ERD redrawn in crow's-foot notation |
+| D3 | The CUSTOMER–APPOINTMENT arrow is reversed | `appointment.vehicle_id` references `vehicle`, which references `customer`, so the shop knows which car is booked |
+| D4 | "Receives" is one-to-many, so it shouldn't be a standalone table | `vehicle_receives` removed; a foreign key (`work_order.vehicle_id`) replaces it |
+| D5–D8 | No primary key on `vehicle_receives`, `service_cost`, `mechanic_uses`, `mechanic_performs` | Every table has a primary key; junction tables use composite keys, e.g. `PRIMARY KEY (work_order_id, part_id)`. See C3 |
+| D9 | PART doesn't need `mechanic_id` (data dictionary inconsistent with the logical schema) | Parts link to jobs through `work_order_part`, which also stores quantity and cost. See B7 |
+| D10 | SERVICE doesn't need `mechanic_id` and `VIN` (data dictionary inconsistent with the logical schema) | Resolved in favor of foreign keys, consistent with D4: each job has one vehicle and one responsible technician, so `work_order` holds both keys and the junction tables are gone. Schema, ERD and data dictionary now come from one design. See C6 |
 
 ---
 

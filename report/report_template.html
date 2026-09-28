@@ -76,7 +76,7 @@
     <div style="height:22pt"></div>
     <div class="eyebrow">Database design &amp; implementation · version 2</div>
     <h1>Service Management Database</h1>
-    <div class="sub">An operational database, analysis and dashboard for an independent auto repair shop, rebuilt from my 2021 UNLV Information Systems capstone.</div>
+    <div class="sub">An operational database, analysis and dashboard for an independent auto repair shop, rebuilt from my 2021 UNLV term project for IS 475, Database Design and Implementation.</div>
     <div class="stats">
       <div><b>14</b><span>normalized tables (3NF)</span></div>
       <div><b>70K</b><span>rows across 24 months</span></div>
@@ -117,7 +117,7 @@
 <!-- ============================== 1. EXECUTIVE SUMMARY ============================== -->
 <section class="chapter">
   <h2><span class="num">1</span>Executive summary</h2>
-  <p class="lede">In 2021 I designed a service-management database for an auto repair shop as my capstone. In 2026 I audited it, found that it no longer ran and that several of its answers were wrong, and rebuilt it end to end: schema, test data, reporting layer, 22 analysis queries, data-quality tests and an interactive dashboard.</p>
+  <p class="lede">In 2021 I designed a service-management database for an auto repair shop as my term project for IS 475, Database Design and Implementation, at UNLV. In 2026 I audited it, found that it no longer ran and that several of its answers were wrong, and rebuilt it end to end: schema, test data, reporting layer, 22 analysis queries, data-quality tests and an interactive dashboard.</p>
 
   <h3>The problem</h3>
   <p>The original report named two root problems: (1) <b>jobs and appointments running late</b>, which drives customers away, and (2) <b>no tracking of parts usage</b>, which leads to stockouts. The 2021 design couldn't measure either: it linked parts to mechanics instead of jobs, and each mechanic to a single customer.</p>
@@ -238,7 +238,7 @@
 <!-- ============================== 7. DATA ============================== -->
 <section style="margin-top:22pt">
   <h2><span class="num">7</span>Data, simulation &amp; quality testing</h2>
-  <p class="lede">The 2021 data had 50 rows per table, every relationship 1:1. That's too small to analyze and too simple to expose bugs like double counting. Version 2 is loaded with about 70,000 rows from a seeded simulation of two years of shop operations.</p>
+  <p class="lede">The 2021 data had 50 hand-typed rows per table (the course minimum), every relationship 1:1. That's too small to analyze and too simple to expose bugs like double counting. Version 2 is loaded with about 70,000 rows from a seeded simulation of two years of shop operations.</p>
   <h3>How the data was generated</h3>
   <p><code>python/generate_data.py</code> (standard library only, seed 2021) simulates the shop one business day at a time:</p>
   <ul>

@@ -1,7 +1,7 @@
 # Service Management Database
 
 **A MySQL database, SQL analysis and operations dashboard for an independent auto repair shop.**
-Rebuilt in 2026 from my 2021 UNLV Information Systems capstone.
+Rebuilt in 2026 from my 2021 term project for IS 475, Database Design and Implementation, at UNLV.
 
 **[Live dashboard](https://jomelcapili.github.io/Database-Design-and-Implementation/)** ·
 **[Full report (PDF)](report/Database_Report_v2.pdf)** ·
@@ -21,19 +21,22 @@ Rebuilt in 2026 from my 2021 UNLV Information Systems capstone.
 
 ## The story
 
-In 2021 I designed a service-management database for an auto repair shop. The shop's problems were
-**jobs and appointments running late** and **no tracking of which parts were used**, which caused stockouts.
+In 2021, as the term project for my database design class at UNLV, I designed a service-management database for an
+auto repair shop. The shop's problems were **jobs and appointments running late** and **no tracking of which parts
+were used**, which caused stockouts. The course required at least 7 tables and 50 rows per table, and I typed all
+550 rows by hand.
 
 In 2026 I re-ran that script on a clean MySQL 8 server. It threw **18 errors**, and several queries that did run
 returned **wrong answers with no warning**: an `AND`/`OR` precedence bug, a join that double-counted revenue,
 and a "most used parts" query that counted rows instead of units. The deeper problem was the design itself:
 parts were linked to *mechanics* instead of *jobs*, so the database couldn't answer the very question it was built for.
-([Full audit with evidence](docs/FIX_LOG.md))
+My professor's feedback in 2021 had flagged several of these design issues, and every one of them is fixed in v2.
+([Full audit with evidence](docs/FIX_LOG.md), including [the 2021 feedback, item by item](docs/FIX_LOG.md#d-2021-instructor-feedback))
 
 So I rebuilt it end to end:
 
 1. **Designed** a normalized 14-table schema with foreign keys and 30 CHECK constraints ([ERD](#database-design))
-2. **Simulated** two years of realistic operations in Python (~70K rows) so the design is tested at scale
+2. **Simulated** two years of realistic operations in Python (~70K rows, up from 550 hand-typed rows) so the design is tested at scale
 3. **Built** a reporting layer of 7 SQL views that define every metric once
 4. **Answered** 22 business questions with CTEs and window functions
 5. **Tested** the data with 20 automated quality checks, which caught a real bug in my own generator
