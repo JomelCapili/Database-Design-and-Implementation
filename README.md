@@ -6,6 +6,7 @@ Rebuilt in 2026 from my 2021 term project for IS 475, Database Design and Implem
 **[Live dashboard](https://jomelcapili.github.io/Database-Design-and-Implementation/)** ·
 **[Full report (PDF)](report/Database_Report_v2.pdf)** ·
 **[What I fixed from 2021](docs/FIX_LOG.md)** ·
+**[Original 2021 files](legacy/)** ·
 [Power BI guide](dashboard/POWER_BI_GUIDE.md) ·
 [Tableau guide](dashboard/TABLEAU_GUIDE.md)
 
@@ -41,6 +42,29 @@ So I rebuilt it end to end:
 4. **Answered** 22 business questions with CTEs and window functions
 5. **Tested** the data with 20 automated quality checks, which caught a real bug in my own generator
 6. **Delivered** an interactive dashboard, a 22-page report, and Power BI / Tableau build kits
+
+## 2021 vs. 2026
+
+The original proposal, slides, report and SQL are in [`legacy/`](legacy/), so you can compare them directly.
+
+| | 2021 class project | 2026 rebuild |
+|---|---|---|
+| Tables | 11 | 14, in third normal form |
+| Data | 550 rows, typed by hand, every relationship 1:1 | ~70,000 rows from a seeded two-year simulation |
+| Keys and rules | 12 foreign keys; 4 tables with no primary key; no CHECK constraints | 16 foreign keys, a primary key on every table, 30 CHECK constraints |
+| Reporting layer | none | 7 views that define every metric once |
+| Queries | 15 | 22, using CTEs and window functions |
+| Testing | none | 20 automated data-quality checks |
+| On MySQL 8 (Linux) | 18 errors, plus silent wrong answers | runs clean |
+| Deliverables | 20-page report | 22-page report, interactive dashboard, Power BI / Tableau kits |
+
+<table>
+<tr><th>2021: hand-drawn logical schema</th><th>2026: entity relationship diagram</th></tr>
+<tr>
+<td width="50%"><a href="legacy/img/logical_schema_2021.jpg"><img src="legacy/img/logical_schema_2021.jpg" alt="2021 hand-drawn logical schema"></a></td>
+<td width="50%"><a href="docs/img/erd.png"><img src="docs/img/erd.png" alt="2026 entity relationship diagram"></a></td>
+</tr>
+</table>
 
 ## What the data shows
 
@@ -122,8 +146,11 @@ docs/
 report/
   Database_Report_v2.pdf        the full report
   report_template.html, build_report.py, capture_images.js, print_pdf.js
-legacy/
-  service_management_2021.sql, Database_Report_2021.pdf   the original, kept for comparison
+legacy/                         the original 2021 project (see legacy/README.md)
+  Project_Proposal_2021.pdf, Project_Proposal_Slides_2021.pdf
+  Project_Report_2021.pdf       the report as submitted, December 2021
+  service_management_2021.sql   the original SQL script
+  img/                          the hand-drawn ERD and logical schema
 ```
 
 ## Run it
