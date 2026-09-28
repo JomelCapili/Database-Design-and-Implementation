@@ -277,6 +277,38 @@ function s(tag, attrs = {}, parent) {
   if (parent) parent.appendChild(e);
   return e;
 }
+
+/* ---------------- keeping labels inside their chart ---------------- */
+const measure = (() => {                        // width in px of a string in a given text class
+  let t = null;
+  return (str, cls) => {
+    if (!t) {
+      const m = s("svg", { width: 0, height: 0, "aria-hidden": "true", style: "position:absolute;left:0;top:0;visibility:hidden;pointer-events:none" });
+      t = s("text", {}, m); document.body.append(m);
+    }
+    t.setAttribute("class", cls); t.textContent = str;
+    return t.getComputedTextLength();
+  };
+})();
+function fitLabel(t, maxW) {                    // shorten with "…" until it fits; the full name shows on hover
+  const full = t.textContent;
+  if (maxW <= 0 || t.getComputedTextLength() <= maxW) return;
+  let lo = 0, hi = full.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    t.textContent = full.slice(0, mid).trimEnd() + "…";
+    if (t.getComputedTextLength() <= maxW) lo = mid; else hi = mid - 1;
+  }
+  t.textContent = full.slice(0, lo).trimEnd() + "…";
+  s("title", { text: full }, t);
+}
+function keepInside(svg, W0) {                  // safety net: nudge any text that still pokes past the edges
+  for (const t of svg.querySelectorAll("text")) {
+    const b = t.getBBox(), x = +t.getAttribute("x");
+    if (b.x < 0) t.setAttribute("x", x - b.x);
+    else if (b.x + b.width > W0) t.setAttribute("x", x - (b.x + b.width - W0));
+  }
+}
 const ICON = {
   check: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.2 2.2 4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   alert: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2.2v4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="6" cy="9.3" r="1" fill="currentColor"/></svg>',
@@ -383,6 +415,7 @@ function legendEl(items) {
 function widthOf(el) { return Math.max(280, Math.round(el.getBoundingClientRect().width || el.parentElement.getBoundingClientRect().width || 600)); }
 
 function columnChart(el, { labels, values, fmt, tipRows, height = 220, labelIdx = [], color = "var(--accent)", xEvery }) {
+  if (!values.some(v => v > 0)) return noData(el);
   const W0 = widthOf(el), H0 = height, m = { l: 52, r: 8, t: 18, b: 30 };
   const iw = W0 - m.l - m.r, ih = H0 - m.t - m.b;
   const max = niceMax(Math.max(...values, 0));
@@ -405,14 +438,19 @@ function columnChart(el, { labels, values, fmt, tipRows, height = 220, labelIdx 
     if (labelIdx.includes(i) && bh > 0) s("text", { x: x + bw / 2, y: y - 6, "text-anchor": "middle", class: "val-t", text: fmt(v) }, svg);
   });
   el.append(svg);
+  keepInside(svg, W0);
 }
 
 function lineChart(el, { labels, series, fmt, yMax, yMin = 0, ref, height = 220, ticks = 4 }) {
   const W0 = widthOf(el), H0 = height, m = { l: 52, r: 64, t: 14, b: 30 };
   const iw = W0 - m.l - m.r, ih = H0 - m.t - m.b;
   const all = series.flatMap(sr => sr.values).filter(v => v != null);
-  const max = yMax != null ? yMax : niceMax(Math.max(...all, ref ? ref.value : 0));
-  const min = yMin;
+  if (!all.length) return noData(el);
+  const hi = all.length ? Math.max(...all) : 0, lo = all.length ? Math.min(...all) : 0;
+  // yMin/yMax are the preferred range; small filtered samples can swing past them, so widen to fit
+  const min = lo < yMin ? Math.min(0, lo) : yMin;
+  let max = yMax != null ? yMax : niceMax(Math.max(hi, ref ? ref.value : 0));
+  if (hi > max) max = min + niceMax(hi - min, ticks);
   const X = i => m.l + (labels.length === 1 ? iw / 2 : i / (labels.length - 1) * iw);
   const Y = v => m.t + ih - (v - min) / (max - min) * ih;
   const svg = s("svg", { viewBox: `0 0 ${W0} ${H0}`, role: "img", "aria-label": "Line chart" });
@@ -452,11 +490,17 @@ function lineChart(el, { labels, series, fmt, yMax, yMin = 0, ref, height = 220,
   hit.addEventListener("focus", () => focusTip(hit, ...at(labels.length - 1)));
   hit.addEventListener("blur", hideTip);
   el.append(svg);
+  keepInside(svg, W0);
 }
 
+function noData(el) { el.append(h("p", { class: "note", text: "No jobs match these filters." })); }
 function hbarChart(el, { rows, fmt, max, ref, labelW, barColor = () => "var(--accent)", tipRows }) {
-  const W0 = widthOf(el), rowH = 28, grpH = 26, m = { t: 4, b: 6, r: 58 };
-  const lw = labelW || Math.min(210, Math.max(120, W0 * 0.34));
+  if (!rows.length) return noData(el);
+  const W0 = widthOf(el), rowH = 28, grpH = 26;
+  const valW = Math.max(0, ...rows.map(r => measure(r.text || fmt(r.value), "val-t")));
+  const m = { t: 4, b: 6, r: Math.ceil(valW) + 10 };
+  const nameW = Math.max(0, ...rows.map(r => measure(r.label, "lbl-t")));
+  const lw = labelW || Math.max(48, Math.min(Math.ceil(nameW) + 4, W0 < 520 ? W0 * 0.36 : Math.min(210, W0 * 0.34)));
   let hgt = m.t + m.b, prev = null;
   rows.forEach(r => { if (r.group && r.group !== prev) { hgt += grpH; prev = r.group; } hgt += rowH; });
   const iw = W0 - lw - m.r - 8;
@@ -478,16 +522,22 @@ function hbarChart(el, { rows, fmt, max, ref, labelW, barColor = () => "var(--ac
     y += rowH;
   });
   if (ref) {
-    const x = x0 + ref.value / mx * iw;
+    const x = x0 + ref.value / mx * iw, flip = x + 4 + measure(ref.label, "axis-t") > W0;
     s("line", { x1: x, x2: x, y1: m.t, y2: hgt - m.b, style: "stroke:var(--ink-2);stroke-width:1" }, svg);
-    s("text", { x: x + 4, y: hgt - m.b - 2, class: "axis-t", text: ref.label }, svg);
+    s("text", { x: flip ? x - 4 : x + 4, y: hgt - m.b - 2, "text-anchor": flip ? "end" : "start", class: "axis-t", text: ref.label }, svg);
   }
   el.append(svg);
+  svg.querySelectorAll(".lbl-t").forEach(t => fitLabel(t, lw - 2));
+  keepInside(svg, W0);
 }
 
 function dumbbell(el, { rows, fmt, aName, bName, labelW, padR = 40 }) {
-  const W0 = widthOf(el), rowH = 30, m = { t: 22, b: 6, r: padR };
-  const lw = labelW || Math.min(200, Math.max(110, W0 * 0.32));
+  if (!rows.length) return noData(el);
+  const W0 = widthOf(el), rowH = 30;
+  const valW = Math.max(0, ...rows.map(r => measure(r.text || fmt(r.b), "val-t")));
+  const m = { t: 22, b: 6, r: Math.max(padR, Math.ceil(valW) + 16) };
+  const nameW = Math.max(0, ...rows.map(r => measure(r.label, "lbl-t")));
+  const lw = labelW || Math.max(48, Math.min(Math.ceil(nameW) + 4, W0 < 520 ? W0 * 0.36 : Math.min(200, W0 * 0.32)));
   const hgt = m.t + m.b + rows.length * rowH, x0 = lw + 12, iw = W0 - x0 - m.r;
   const mx = niceMax(Math.max(...rows.flatMap(r => [r.a, r.b])), 4);
   const X = v => x0 + v / mx * iw;
@@ -507,6 +557,8 @@ function dumbbell(el, { rows, fmt, aName, bName, labelW, padR = 40 }) {
     hover(hit, r.label, [{ value: fmt(r.a), label: aName }, { value: fmt(r.b), label: bName, color: "var(--accent)" }].concat(r.extra || []));
   });
   el.append(svg);
+  svg.querySelectorAll(".lbl-t").forEach(t => fitLabel(t, lw - 2));
+  keepInside(svg, W0);
 }
 
 function heatmap(el, { rows, cols, value, fmt, tipRows, colEvery = 1, cellH = 26, showValues = false, labelW = 64, domain }) {
@@ -514,6 +566,7 @@ function heatmap(el, { rows, cols, value, fmt, tipRows, colEvery = 1, cellH = 26
   const cw = (W0 - labelW - 4) / cols.length;
   const hgt = m.t + rows.length * cellH + m.b;
   const vals = []; rows.forEach((_, r) => cols.forEach((_, c) => { const v = value(r, c); if (v != null) vals.push(v); }));
+  if (!vals.length) return noData(el);
   const [lo, hi] = domain || [Math.min(...vals), Math.max(...vals)];
   const step = v => hi === lo ? 4 : Math.min(7, 1 + Math.floor((v - lo) / (hi - lo) * 6.999));
   const svg = s("svg", { viewBox: `0 0 ${W0} ${hgt}`, role: "img", "aria-label": "Heatmap" });
@@ -532,6 +585,8 @@ function heatmap(el, { rows, cols, value, fmt, tipRows, colEvery = 1, cellH = 26
     });
   });
   el.append(svg);
+  svg.querySelectorAll(".lbl-t").forEach(t => fitLabel(t, labelW - 8));
+  keepInside(svg, W0);
   const scale = h("div", { class: "legend", style: "align-items:center" }, h("span", { text: fmt(lo) }),
     h("span", { style: "gap:2px" }, [1, 2, 3, 4, 5, 6, 7].map(k => h("span", { class: "key-box", style: `background:var(--seq-${k});width:18px` }))),
     h("span", { text: fmt(hi) }));
@@ -903,7 +958,7 @@ PAGES.customers = view => {
     let n = 0, ns = 0, r = 0; for (const c of cm.values()) if (c.ch === ci) { n++; ns += c.ns; if (c.visits > 1) r++; }
     return { label: name, value: n ? ns / n : 0, n, rep: n ? r / n * 100 : 0 };
   }).filter(r => r.n).sort((x, y) => y.value - x.value);
-  const c1 = card(view, { title: "Sales per customer by acquisition channel", sub: "Net sales per customer served in the period" });
+  const c1 = card(view, { title: "Sales per customer by acquisition channel", sub: "Net sales per customer served in the period · repeat = came in 2+ times within the selected period and filters" });
   c1.draw = el => hbarChart(el, { rows: ch.map(r => ({ ...r, text: `${money0(r.value)} · ${pct(r.rep, 0)} repeat` })), fmt: money0,
     tipRows: r => [{ value: money0(r.value), label: "per customer" }, { value: pct(r.rep), label: "visited 2+ times" }, { value: int(r.n), label: "customers" }] });
   c1.table = { cols: ["Channel", "Sales per customer", "Repeat rate", "Customers"], rows: ch.map(r => [r.label, money0(r.value), pct(r.rep), int(r.n)]) };
